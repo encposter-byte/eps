@@ -383,3 +383,42 @@ export const passwordResetSchema = z.object({
   message: "Пароли не совпадают",
   path: ["confirmPassword"],
 });
+
+// Wishlist (Избранное) Schema
+export const wishlistItems = pgTable("wishlist_items", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  productId: integer("product_id").notNull().references(() => products.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertWishlistItemSchema = createInsertSchema(wishlistItems).pick({
+  userId: true,
+  productId: true,
+});
+
+export type InsertWishlistItem = z.infer<typeof insertWishlistItemSchema>;
+export type WishlistItem = typeof wishlistItems.$inferSelect;
+
+// Отношения для wishlist
+export const wishlistItemsRelations = relations(wishlistItems, ({ one }) => ({
+  user: one(users, {
+    fields: [wishlistItems.userId],
+    references: [users.id],
+  }),
+  product: one(products, {
+    fields: [wishlistItems.productId],
+    references: [products.id],
+  }),
+}));
+
+// Тип категории с изображением первого товара
+export type CategoryWithImage = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  icon: string | null;
+  productCount: number;
+  imageUrl: string | null;
+};

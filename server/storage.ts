@@ -2,11 +2,12 @@ import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool, db } from "./db";
 import {
-  User, InsertUser, Category, InsertCategory, Product, InsertProduct, 
-  ProductInput, CartItem, InsertCartItem, ProductSearchParams, Order, 
+  User, InsertUser, Category, InsertCategory, Product, InsertProduct,
+  ProductInput, CartItem, InsertCartItem, ProductSearchParams, Order,
   OrderInput, OrderItem, OrderSearchParams, shopSettingsSchema, seoSettingsSchema,
   users, categories, products, cartItems, orders, orderItems, shopSettings,
-  passwordResetTokens, InsertPasswordResetToken, PasswordResetToken
+  passwordResetTokens, InsertPasswordResetToken, PasswordResetToken,
+  wishlistItems, InsertWishlistItem, WishlistItem, CategoryWithImage
 } from "@shared/schema";
 import { z } from "zod";
 import { and, eq, like, between, desc, asc, sql, isNull, gte, lte, or, not, ilike } from "drizzle-orm";
@@ -100,6 +101,15 @@ export interface IStorage {
   // Statistics operations
   getProductsCount(): Promise<number>;
   getCategoriesCount(): Promise<number>;
+
+  // Categories with images (optimized)
+  getCategoriesWithFirstImage(supplier?: string): Promise<CategoryWithImage[]>;
+
+  // Wishlist operations
+  getWishlistItems(userId: number): Promise<(WishlistItem & { product: Product })[]>;
+  addToWishlist(userId: number, productId: number): Promise<WishlistItem>;
+  removeFromWishlist(userId: number, productId: number): Promise<boolean>;
+  isInWishlist(userId: number, productId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1026,32 +1036,112 @@ export class DatabaseStorage implements IStorage {
     return Number(result[0]?.count || 0);
   }
 
-  
-  async getAllCategories(): Promise<Category[]> {
+  // Оптимизированный метод для получения категорий с изображением первого товара
+  async getCategoriesWithFirstImage(supplier?: string): Promise<CategoryWithImage[]> {
     // Получаем все категории
     const allCategories = await db.select().from(categories).orderBy(categories.name);
 
-    // Получаем счетчики товаров для всех категорий одним запросом
-    const productCounts = await db
+    // Условия для подсчета товаров
+    const conditions = [eq(products.isActive, true)];
+    if (supplier) {
+      conditions.push(eq(products.tag, supplier));
+    }
+
+    // Получаем счетчики и первое изображение одним запросом
+    const categoryData = await db
       .select({
         categoryId: products.categoryId,
-        count: sql<number>`count(case when ${products.id} is not null then 1 end)`.as('count')
+        count: sql<number>`count(*)`.as('count'),
+        imageUrl: sql<string>`(array_agg(${products.imageUrl} ORDER BY ${products.id}))[1]`.as('image_url')
       })
       .from(products)
-      .leftJoin(categories, eq(products.categoryId, categories.id))
-      .where(eq(products.isActive, true))
+      .where(and(...conditions))
       .groupBy(products.categoryId);
 
-    // Создаем Map для быстрого поиска счетчиков
-    const countMap = new Map(
-      productCounts.map(pc => [pc.categoryId, Number(pc.count)])
+    // Создаем Map для быстрого поиска
+    const dataMap = new Map(
+      categoryData.map(cd => [cd.categoryId, { count: Number(cd.count), imageUrl: cd.imageUrl }])
     );
 
-    // Объединяем данные
-    return allCategories.map(category => ({
-      ...category,
-      productCount: countMap.get(category.id) || 0
-    })) as Category[];
+    // Объединяем данные и фильтруем категории с товарами
+    return allCategories
+      .map(category => {
+        const data = dataMap.get(category.id);
+        return {
+          id: category.id,
+          name: category.name,
+          slug: category.slug,
+          description: category.description,
+          icon: category.icon,
+          productCount: data?.count || 0,
+          imageUrl: data?.imageUrl || null
+        };
+      })
+      .filter(category => category.productCount > 0);
+  }
+
+  // Wishlist operations
+  async getWishlistItems(userId: number): Promise<(WishlistItem & { product: Product })[]> {
+    const result = await db
+      .select({
+        id: wishlistItems.id,
+        userId: wishlistItems.userId,
+        productId: wishlistItems.productId,
+        createdAt: wishlistItems.createdAt,
+        product: products
+      })
+      .from(wishlistItems)
+      .where(eq(wishlistItems.userId, userId))
+      .innerJoin(products, eq(wishlistItems.productId, products.id))
+      .orderBy(desc(wishlistItems.createdAt));
+
+    return result;
+  }
+
+  async addToWishlist(userId: number, productId: number): Promise<WishlistItem> {
+    // Проверяем, не добавлен ли уже товар
+    const existing = await db
+      .select()
+      .from(wishlistItems)
+      .where(and(
+        eq(wishlistItems.userId, userId),
+        eq(wishlistItems.productId, productId)
+      ));
+
+    if (existing.length > 0) {
+      return existing[0];
+    }
+
+    const [result] = await db
+      .insert(wishlistItems)
+      .values({ userId, productId })
+      .returning();
+
+    return result;
+  }
+
+  async removeFromWishlist(userId: number, productId: number): Promise<boolean> {
+    const result = await db
+      .delete(wishlistItems)
+      .where(and(
+        eq(wishlistItems.userId, userId),
+        eq(wishlistItems.productId, productId)
+      ))
+      .returning();
+
+    return result.length > 0;
+  }
+
+  async isInWishlist(userId: number, productId: number): Promise<boolean> {
+    const result = await db
+      .select()
+      .from(wishlistItems)
+      .where(and(
+        eq(wishlistItems.userId, userId),
+        eq(wishlistItems.productId, productId)
+      ));
+
+    return result.length > 0;
   }
 }
 

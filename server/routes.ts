@@ -267,6 +267,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Оптимизированный endpoint для категорий с изображениями
+  router.get("/categories/with-images", async (req, res) => {
+    try {
+      const supplier = req.query.supplier as string | undefined;
+      const categories = await storage.getCategoriesWithFirstImage(supplier);
+      res.json(categories);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Wishlist Routes
+  router.get("/wishlist", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Необходима авторизация" });
+      }
+      const items = await storage.getWishlistItems(userId);
+      res.json(items);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  router.post("/wishlist/:productId", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Необходима авторизация" });
+      }
+      const productId = parseInt(req.params.productId);
+      const item = await storage.addToWishlist(userId, productId);
+      res.status(201).json(item);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  router.delete("/wishlist/:productId", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Необходима авторизация" });
+      }
+      const productId = parseInt(req.params.productId);
+      const success = await storage.removeFromWishlist(userId, productId);
+      if (!success) {
+        return res.status(404).json({ message: "Товар не найден в избранном" });
+      }
+      res.json({ message: "Товар удален из избранного" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  router.get("/wishlist/check/:productId", requireAuth, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "Необходима авторизация" });
+      }
+      const productId = parseInt(req.params.productId);
+      const isInWishlist = await storage.isInWishlist(userId, productId);
+      res.json({ isInWishlist });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Product Routes
   router.get("/products", async (req, res) => {
     try {

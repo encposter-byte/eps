@@ -1,7 +1,9 @@
 import { Resend } from 'resend';
 
-// Инициализируем Resend с API-ключом
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Инициализируем Resend с API-ключом (используем заглушку если ключ не установлен)
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 // Удостоверяемся, что API-ключ предоставлен
 if (!process.env.RESEND_API_KEY) {
@@ -22,8 +24,8 @@ export interface EmailOptions {
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    // Проверка наличия API-ключа
-    if (!process.env.RESEND_API_KEY) {
+    // Проверка наличия API-ключа и клиента
+    if (!process.env.RESEND_API_KEY || !resend) {
       console.warn('Resend API key not set. Email would not be sent.');
       console.log('Would send email with options:', options);
       return false;
@@ -31,13 +33,13 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 
     // Получаем авторизованный email для тестирования из переменной окружения
     const authorizedTestEmail = "encposter@gmail.com"; // Ваш email, который зарегистрирован в Resend
-    
+
     // В тестовом режиме Resend позволяет отправлять только на email, зарегистрированный в аккаунте
     // Для других получателей нужно верифицировать домен
     console.log(`Email would be sent to ${options.to}, but in test mode sending to ${authorizedTestEmail} instead`);
-    
+
     // Отправляем электронное письмо
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await resend!.emails.send({
       from: 'onboarding@resend.dev', // Используем тестовый домен Resend для разработки
       to: authorizedTestEmail, // Всегда отправляем на наш собственный email в тестовом режиме
       subject: options.subject,

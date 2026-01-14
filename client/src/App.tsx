@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -5,12 +6,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { CartProvider } from "@/lib/cart";
+import { WishlistProvider } from "@/lib/wishlist";
 import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
 
 // Layout Components
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
-import TopBanner from "@/components/layout/top-banner";
+import MobileNavigation from "@/components/layout/MobileNavigation";
+import MobileCategoryDrawer from "@/components/mobile/MobileCategoryDrawer";
 
 // Pages
 import Home from "@/pages/home";
@@ -37,23 +40,24 @@ import CategoryManagement from "@/pages/admin/category-management";
 import OrderManagement from "@/pages/admin/order-management";
 import UserManagement from "@/pages/admin/user-management";
 import SettingsManagement from "@/pages/admin/settings-management";
-// import SqlDeletePage from "@/pages/admin/sql-delete";
-// import SupplierImporter from "@/pages/admin/supplier-importer";
-// import CatalogAdapter from "@/pages/admin/catalog-adapter";
-// import WebScraper from "@/pages/admin/web-scraper";
-// import MassScraper from "@/pages/admin/mass-scraper";
 
 function Router() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
 
   // Check if the current route is an admin route
   const isAdminRoute = location.startsWith("/admin");
+
+  const handleCategorySelect = (slug: string) => {
+    setLocation(`/category/${slug}`);
+    setCategoryDrawerOpen(false);
+  };
 
   return (
     <>
       {!isAdminRoute && <Header />}
 
-      <main className={isAdminRoute ? "bg-gray-50 min-h-screen" : ""}>
+      <main className={isAdminRoute ? "bg-gray-50 min-h-screen" : "pb-16 lg:pb-0"}>
         <Switch>
           {/* Public Routes */}
           <Route path="/" component={Home} />
@@ -79,22 +83,27 @@ function Router() {
           <ProtectedRoute path="/admin/products/create" component={ProductFormPage} />
           <ProtectedRoute path="/admin/products/edit/:id" component={ProductFormPage} />
           <ProtectedRoute path="/admin/import" component={BulkImport} />
-          {/* <ProtectedRoute path="/admin/catalog-adapter" component={CatalogAdapter} /> */}
-          {/* <ProtectedRoute path="/admin/web-scraper" component={WebScraper} /> */}
-          {/* <ProtectedRoute path="/admin/mass-scraper" component={MassScraper} /> */}
           <ProtectedRoute path="/admin/categories" component={CategoryManagement} />
           <ProtectedRoute path="/admin/orders" component={OrderManagement} />
           <ProtectedRoute path="/admin/users" component={UserManagement} />
           <ProtectedRoute path="/admin/settings" component={SettingsManagement} />
-          {/* <ProtectedRoute path="/admin/sql-delete" component={SqlDeletePage} /> */}
-          {/* <ProtectedRoute path="/admin/supplier-importer" component={SupplierImporter} /> */}
 
           {/* Fallback to 404 */}
           <Route component={NotFound} />
         </Switch>
       </main>
 
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && (
+        <>
+          <Footer />
+          <MobileNavigation onCategoriesClick={() => setCategoryDrawerOpen(true)} />
+          <MobileCategoryDrawer
+            open={categoryDrawerOpen}
+            onOpenChange={setCategoryDrawerOpen}
+            onCategorySelect={handleCategorySelect}
+          />
+        </>
+      )}
     </>
   );
 }
@@ -108,11 +117,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>
-          <Router />
-          <InstallAppPrompt />
-          <Toaster />
-          {/* Невидимый элемент с информацией о версии */}
-          <div style={{ display: "none" }} data-version={updateVersion}></div>
+          <WishlistProvider>
+            <Router />
+            <InstallAppPrompt />
+            <Toaster />
+            {/* Невидимый элемент с информацией о версии */}
+            <div style={{ display: "none" }} data-version={updateVersion}></div>
+          </WishlistProvider>
         </CartProvider>
       </AuthProvider>
     </QueryClientProvider>

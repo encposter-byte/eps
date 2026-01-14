@@ -1,4 +1,0 @@
-name,sku,slug,price,categoryName,description,isActive,isFeatured
-Молоток слесарный,MOL-001,molotok-slesarnyj,1500,Ручной инструмент,Молоток слесарный 500г с деревянной ручкой,true,true
-Отвертка крестовая,OTV-001,otvertka-krestovaya,250,Ручной инструмент,Отвертка крестовая PH2 150мм,true,false
-Дрель электрическая,DRL-001,drel-elektricheskaya,8500,Электроинструмент,Дрель электрическая 850Вт с набором сверл,true,true

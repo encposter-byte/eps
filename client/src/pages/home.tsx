@@ -1,255 +1,311 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { Helmet } from "react-helmet";
+import CategoryStrip from "@/components/category/CategoryStrip";
+import FilterSidebar, { FilterState } from "@/components/filters/FilterSidebar";
+import QuickFilters, { SortOption } from "@/components/filters/QuickFilters";
+import ProductCard from "@/components/product/product-card";
 import { Button } from "@/components/ui/button";
-import { Drill, Hammer, Ruler, HardHat, Wrench, Settings } from "lucide-react";
-import CategoryCard from "@/components/category/category-card";
-import ProductList from "@/components/product/product-list";
-import AppInstallBanner from "@/components/pwa/AppInstallBanner";
-import { Category } from "@shared/schema";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Product } from "@shared/schema";
+import { Loader2, PackageX, SlidersHorizontal } from "lucide-react";
+
+const DEFAULT_FILTERS: FilterState = {
+  categories: [],
+  suppliers: [],
+  minPrice: 0,
+  maxPrice: 500000,
+  inStock: false,
+};
+
+interface ProductsResponse {
+  products: Product[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
 
 export default function Home() {
   const [location] = useLocation();
-  const queryParams = new URLSearchParams(location.split('?')[1] || '');
-  const searchQuery = queryParams.get('query') || '';
-  const supplierParam = queryParams.get('supplier') || undefined;
+  const queryParams = new URLSearchParams(location.split("?")[1] || "");
+  const searchQuery = queryParams.get("query") || "";
 
-  // Состояние для выбранного поставщика
-  const [selectedSupplier, setSelectedSupplier] = useState<string | undefined>(supplierParam);
+  // States
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null);
+  const [sort, setSort] = useState<SortOption>("featured");
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [page, setPage] = useState(1);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  // Fetch categories с учетом выбранного поставщика
-  const { data: categories = [] } = useQuery<Category[]>({ 
-    queryKey: ["/api/categories", selectedSupplier],
-    queryFn: () => {
+  // Build query params for products API
+  const buildProductParams = useCallback(() => {
+    const params = new URLSearchParams();
+
+    if (searchQuery) params.append("query", searchQuery);
+    if (selectedSupplier) params.append("supplier", selectedSupplier);
+    if (selectedCategory) {
+      // Get category ID from slug - for now just use slug
+      params.append("categorySlug", selectedCategory);
+    }
+    if (filters.minPrice > 0) params.append("minPrice", filters.minPrice.toString());
+    if (filters.maxPrice < 500000) params.append("maxPrice", filters.maxPrice.toString());
+    if (sort) params.append("sort", sort);
+    params.append("page", page.toString());
+    params.append("limit", "24");
+
+    return params.toString();
+  }, [searchQuery, selectedSupplier, selectedCategory, filters, sort, page]);
+
+  // Fetch products
+  const {
+    data: productsData,
+    isLoading,
+    isFetching,
+  } = useQuery<ProductsResponse>({
+    queryKey: [
+      "/api/products",
+      searchQuery,
+      selectedSupplier,
+      selectedCategory,
+      filters.minPrice,
+      filters.maxPrice,
+      sort,
+      page,
+    ],
+    queryFn: async () => {
       const params = new URLSearchParams();
-      if (selectedSupplier) {
-        params.append('supplier', selectedSupplier);
-      }
-      // Добавляем timestamp для принудительного обновления
-      params.append('t', Date.now().toString());
-      return fetch(`/api/categories?${params}`).then(res => res.json());
+
+      if (searchQuery) params.append("query", searchQuery);
+      if (selectedSupplier) params.append("supplier", selectedSupplier);
+      if (filters.minPrice > 0) params.append("minPrice", filters.minPrice.toString());
+      if (filters.maxPrice < 500000) params.append("maxPrice", filters.maxPrice.toString());
+      if (sort) params.append("sort", sort);
+      params.append("page", page.toString());
+      params.append("limit", "24");
+
+      const res = await fetch(`/api/products?${params}`);
+      if (!res.ok) throw new Error("Ошибка загрузки товаров");
+      return res.json();
     },
-    staleTime: 0, // Принудительное обновление
-    gcTime: 0, // Не кешировать
+    staleTime: 2 * 60 * 1000,
   });
 
+  const handleCategorySelect = (slug: string | undefined) => {
+    setSelectedCategory(slug);
+    setPage(1);
+  };
+
+  const handleSupplierChange = (supplier: string | null) => {
+    setSelectedSupplier(supplier);
+    setPage(1);
+  };
+
+  const handleSortChange = (newSort: SortOption) => {
+    setSort(newSort);
+    setPage(1);
+  };
+
+  const handleFiltersChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    setPage(1);
+  };
+
+  const handleResetFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+    setSelectedCategory(undefined);
+    setSelectedSupplier(null);
+    setPage(1);
+  };
+
+  const products = productsData?.products || [];
+  const totalProducts = productsData?.total || 0;
+  const totalPages = productsData?.totalPages || 1;
+
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Helmet>
-        <title>ЭПС</title>
-        <meta name="description" content="Профессиональные инструменты и оборудование от компании ЭПС. Широкий ассортимент по выгодным ценам." />
+        <title>ЭПС - Профессиональные инструменты</title>
+        <meta
+          name="description"
+          content="Профессиональные инструменты и оборудование от компании ЭПС. Широкий ассортимент по выгодным ценам."
+        />
       </Helmet>
-      {/* Hero Section - Центрированный дизайн */}
-      <section className="relative bg-gradient-to-r from-eps-red via-red-500 to-eps-yellow text-white overflow-hidden min-h-[80vh]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10">
-          <div className="text-center hero-slide-up">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-8 leading-tight">
-              <span className="block text-white">Коллекция</span>
-              <span className="block text-white">профессиональных</span>
-              <span className="block text-white">инструментов</span>
-            </h1>
-            <p className="text-lg md:text-xl lg:text-2xl mb-12 text-white/95 max-w-4xl mx-auto">
-              Высококачественные инструменты для профессионалов и любителей. Создавайте с лучшим оборудованием.
-            </p>
-            <div className="flex flex-wrap gap-6 justify-center">
-              <Button 
-                size="lg"
-                className="bg-white text-eps-red hover:bg-gray-50 transition-all font-semibold px-10 py-5 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105"
-                asChild
+
+      {/* Category Strip - всегда видна */}
+      <CategoryStrip
+        selectedCategory={selectedCategory}
+        supplier={selectedSupplier || undefined}
+        onCategorySelect={handleCategorySelect}
+      />
+
+      {/* Quick Filters */}
+      <QuickFilters
+        supplier={selectedSupplier}
+        onSupplierChange={handleSupplierChange}
+        sort={sort}
+        onSortChange={handleSortChange}
+        onOpenFilters={() => setMobileFiltersOpen(true)}
+        totalProducts={totalProducts}
+      />
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex gap-6">
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <FilterSidebar
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              onReset={handleResetFilters}
+              className="sticky top-[180px]"
+            />
+          </div>
+
+          {/* Products Grid */}
+          <div className="flex-1">
+            {isLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                {[...Array(12)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-lg p-4">
+                    <Skeleton className="aspect-square w-full mb-4" />
+                    <Skeleton className="h-4 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-1/2 mb-4" />
+                    <Skeleton className="h-8 w-full" />
+                  </div>
+                ))}
+              </div>
+            ) : products.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <PackageX className="h-16 w-16 text-gray-300 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                  Товары не найдены
+                </h3>
+                <p className="text-gray-500 mb-6 max-w-md">
+                  Попробуйте изменить параметры фильтрации или сбросить фильтры
+                </p>
+                <Button onClick={handleResetFilters} variant="outline">
+                  Сбросить фильтры
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Products Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+
+                {/* Loading indicator for pagination */}
+                {isFetching && !isLoading && (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center gap-2 mt-8">
+                    <Button
+                      variant="outline"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      Назад
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                        let pageNum: number;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (page <= 3) {
+                          pageNum = i + 1;
+                        } else if (page >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = page - 2 + i;
+                        }
+
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={page === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setPage(pageNum)}
+                            className="w-10"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                    >
+                      Вперед
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Filters Sheet */}
+      <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+        <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle className="flex items-center gap-2">
+              <SlidersHorizontal className="h-5 w-5" />
+              Фильтры
+            </SheetTitle>
+          </SheetHeader>
+          <div className="p-4">
+            <FilterSidebar
+              filters={filters}
+              onFiltersChange={(newFilters) => {
+                handleFiltersChange(newFilters);
+              }}
+              onReset={() => {
+                handleResetFilters();
+                setMobileFiltersOpen(false);
+              }}
+            />
+            <div className="mt-4 flex gap-2">
+              <Button
+                className="flex-1"
+                onClick={() => setMobileFiltersOpen(false)}
               >
-                <Link href="#products">Купить сейчас</Link>
+                Применить
               </Button>
-              <Button 
+              <Button
                 variant="outline"
-                size="lg"
-                className="bg-transparent hover:bg-white/20 border-2 border-white text-white font-semibold px-10 py-5 text-lg rounded-full hover:scale-105 transition-all"
-                asChild
+                onClick={() => {
+                  handleResetFilters();
+                  setMobileFiltersOpen(false);
+                }}
               >
-                <Link href="#categories">Посмотреть категории</Link>
+                Сбросить
               </Button>
             </div>
           </div>
-        </div>
-
-        {/* Декоративные элементы */}
-        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-24 h-24 bg-yellow-300/20 rounded-full blur-2xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-white/5 rounded-full blur-xl animate-pulse delay-500"></div>
-      </section>
-
-      {/* Supplier Selection Section */}
-      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Выберите поставщика</h2>
-            <p className="text-lg text-gray-600">Найдите инструменты от проверенных поставщиков</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            <Button 
-              className={`${
-                selectedSupplier === undefined 
-                  ? "bg-eps-red text-white border-eps-red" 
-                  : "bg-white text-gray-900 border-gray-200"
-              } hover:bg-gray-50 border-2 hover:border-eps-red h-auto p-6 transition-all duration-300 group`}
-              onClick={() => setSelectedSupplier(undefined)}
-            >
-              <div className="flex flex-col items-center space-y-3">
-                <div className={`w-12 h-12 rounded-full ${
-                  selectedSupplier === undefined 
-                    ? "bg-white/20" 
-                    : "bg-gradient-to-r from-gray-600 to-gray-700"
-                } flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                  <HardHat className={`w-6 h-6 ${
-                    selectedSupplier === undefined ? "text-white" : "text-white"
-                  }`} />
-                </div>
-                <div className="text-center">
-                  <p className={`text-sm ${
-                    selectedSupplier === undefined ? "text-white/90" : "text-gray-600"
-                  }`}>Полный каталог инструментов</p>
-                </div>
-              </div>
-            </Button>
-
-            <Button 
-              className={`${
-                selectedSupplier === 'DCK' 
-                  ? "bg-eps-red text-white border-eps-red" 
-                  : "bg-white text-gray-900 border-gray-200"
-              } hover:bg-gray-50 border-2 hover:border-eps-red h-auto p-6 transition-all duration-300 group`}
-              onClick={() => setSelectedSupplier('DCK')}
-            >
-              <div className="flex flex-col items-center space-y-3">
-                <div className={`w-12 h-12 rounded-full ${
-                  selectedSupplier === 'DCK' 
-                    ? "bg-white/20" 
-                    : "bg-white"
-                } flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                  <img 
-                    src="https://dcktools.ru/wp-content/themes/dck/images/logo.svg" 
-                    alt="DCK Tools Logo"
-                    className="w-8 h-8 object-contain"
-                  />
-                </div>
-                <div className="text-center">
-                  <p className={`text-sm ${
-                    selectedSupplier === 'DCK' ? "text-white/90" : "text-gray-600"
-                  }`}>Электроинструменты</p>
-                </div>
-              </div>
-            </Button>
-
-            <Button 
-              className={`${
-                selectedSupplier === 'tss' 
-                  ? "bg-eps-red text-white border-eps-red" 
-                  : "bg-white text-gray-900 border-gray-200"
-              } hover:bg-gray-50 border-2 hover:border-eps-red h-auto p-6 transition-all duration-300 group`}
-              onClick={() => setSelectedSupplier('tss')}
-            >
-              <div className="flex flex-col items-center space-y-3">
-                <div className={`w-12 h-12 rounded-full ${
-                  selectedSupplier === 'tss' 
-                    ? "bg-white/20" 
-                    : "bg-white"
-                } flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                  <img 
-                    src="https://gigamarket.by/upload/iblock/bed/uraa243d5ayfwvu1y4vnn64z5qy34hb8/CD.jpg" 
-                    alt="TSS Logo"
-                    className="w-8 h-8 object-contain"
-                  />
-                </div>
-                <div className="text-center">
-                  <p className={`text-sm ${
-                    selectedSupplier === 'tss' ? "text-white/90" : "text-gray-600"
-                  }`}>Промышленное оборудование</p>
-                </div>
-              </div>
-            </Button>
-
-            <Button 
-              className={`${
-                selectedSupplier === 'HUGONGWELD' 
-                  ? "bg-eps-red text-white border-eps-red" 
-                  : "bg-white text-gray-900 border-gray-200"
-              } hover:bg-gray-50 border-2 hover:border-eps-red h-auto p-6 transition-all duration-300 group`}
-              onClick={() => setSelectedSupplier('HUGONGWELD')}
-            >
-              <div className="flex flex-col items-center space-y-3">
-                <div className={`w-12 h-12 rounded-full ${
-                  selectedSupplier === 'HUGONGWELD' 
-                    ? "bg-white/20" 
-                    : "bg-gradient-to-r from-orange-400 to-red-500"
-                } flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
-                  <svg className={`w-6 h-6 ${
-                    selectedSupplier === 'HUGONGWELD' ? "text-white" : "text-white"
-                  }`} fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2L13.09 8.26L16.74 6.85L15.91 11.14L20.35 12L15.91 12.86L16.74 17.15L13.09 15.74L12 22L10.91 15.74L7.26 17.15L8.09 12.86L3.65 12L8.09 11.14L7.26 6.85L10.91 8.26L12 2Z"/>
-                  </svg>
-                </div>
-                <div className="text-center">
-                  <p className={`text-sm ${
-                    selectedSupplier === 'HUGONGWELD' ? "text-white/90" : "text-gray-600"
-                  }`}>Сварочное оборудование</p>
-                </div>
-              </div>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      {!searchQuery && (
-        <section id="categories" className="py-20 bg-gradient-to-br from-slate-50 via-blue-50/30 to-red-50/30 relative overflow-hidden">
-          {/* Decorative Background Elements */}
-          <div className="absolute inset-0">
-            <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-br from-eps-orange/5 to-transparent rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-eps-red/5 to-transparent rounded-full blur-3xl"></div>
-          </div>
-
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Beautiful Header with Icon */}
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-eps-red to-red-600 rounded-full mb-4 shadow-lg">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-              </div>
-              <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-eps-red via-red-600 to-red-700 bg-clip-text text-transparent">
-                Каталог по категориям
-              </h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Выберите подходящую категорию инструментов для вашей работы
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {categories.map((category) => (
-                <CategoryCard
-                  key={category.id}
-                  category={category}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Баннер установки приложения */}
-      <section className="py-6 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AppInstallBanner />
-        </div>
-      </section>
-
-      {/* Products Section */}
-      <section id="products" className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ProductList query={searchQuery} supplier={selectedSupplier} />
-        </div>
-      </section>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
