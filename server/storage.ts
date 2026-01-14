@@ -1047,34 +1047,48 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(products.tag, supplier));
     }
 
-    // Получаем счетчики и первое изображение одним запросом
-    const categoryData = await db
+    // Получаем счетчики товаров
+    const productCounts = await db
       .select({
         categoryId: products.categoryId,
-        count: sql<number>`count(*)`.as('count'),
-        imageUrl: sql<string>`(array_agg(${products.imageUrl} ORDER BY ${products.id}))[1]`.as('image_url')
+        count: sql<number>`count(*)`.as('count')
       })
       .from(products)
       .where(and(...conditions))
       .groupBy(products.categoryId);
 
-    // Создаем Map для быстрого поиска
-    const dataMap = new Map(
-      categoryData.map(cd => [cd.categoryId, { count: Number(cd.count), imageUrl: cd.imageUrl }])
+    // Получаем первое изображение для каждой категории (через MIN по id)
+    const firstImages = await db
+      .select({
+        categoryId: products.categoryId,
+        imageUrl: sql<string>`MIN(${products.imageUrl})`.as('image_url')
+      })
+      .from(products)
+      .where(and(...conditions, sql`${products.imageUrl} IS NOT NULL AND ${products.imageUrl} != ''`))
+      .groupBy(products.categoryId);
+
+    // Создаем Map для быстрого поиска счетчиков
+    const countMap = new Map(
+      productCounts.map(pc => [pc.categoryId, Number(pc.count)])
+    );
+
+    // Создаем Map для быстрого поиска изображений
+    const imageMap = new Map(
+      firstImages.map(fi => [fi.categoryId, fi.imageUrl])
     );
 
     // Объединяем данные и фильтруем категории с товарами
     return allCategories
       .map(category => {
-        const data = dataMap.get(category.id);
+        const count = countMap.get(category.id) || 0;
         return {
           id: category.id,
           name: category.name,
           slug: category.slug,
           description: category.description,
           icon: category.icon,
-          productCount: data?.count || 0,
-          imageUrl: data?.imageUrl || null
+          productCount: count,
+          imageUrl: imageMap.get(category.id) || null
         };
       })
       .filter(category => category.productCount > 0);
