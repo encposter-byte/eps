@@ -25,6 +25,7 @@ import OrderComplete from "@/pages/order-complete";
 import Profile from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
+import VerifyEmailPage from "@/pages/verify-email";
 import PasswordResetPage from "@/pages/password-reset-page";
 import PublicationsPage from "@/pages/publications";
 import AboutPage from "@/pages/about";
@@ -65,6 +66,7 @@ function Router() {
           {/* Category page removed - using /?category=slug instead */}
           <Route path="/cart" component={Cart} />
           <Route path="/auth" component={AuthPage} />
+          <Route path="/verify-email" component={VerifyEmailPage} />
           <Route path="/password-reset" component={PasswordResetPage} />
           <Route path="/password-reset/reset" component={PasswordResetPage} />
           <Route path="/publications" component={PublicationsPage} />

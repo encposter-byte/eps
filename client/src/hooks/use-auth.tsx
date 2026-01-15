@@ -13,6 +13,7 @@ type User = {
   username: string;
   email: string;
   role: string;
+  emailVerified: boolean;
 };
 
 type AuthContextType = {
@@ -82,14 +83,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
-      console.log('Sending registration data:', credentials);
       return await apiRequest("POST", "/api/register", credentials);
     },
     onSuccess: (user: User) => {
       queryClient.setQueryData(["/api/user"], user);
       toast({
         title: "Регистрация успешна",
-        description: `Добро пожаловать, ${user.username}!`,
+        description: "Код подтверждения отправлен на email",
       });
     },
     onError: (error: Error) => {

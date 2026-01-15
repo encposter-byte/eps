@@ -2,6 +2,7 @@ import { Express, Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import session from "express-session";
 import bcrypt from "bcrypt";
+import { generateVerificationCode, sendVerificationCode } from "./email";
 
 // Extend Express Request type to include user
 declare global {
@@ -35,14 +36,10 @@ export function setupAuth(app: Express) {
   app.post("/api/register", async (req: Request, res: Response) => {
     try {
       console.log('Register request body:', req.body);
-      console.log('Register headers:', req.headers);
-      
+
       const { username, email, password } = req.body;
-      
-      console.log('Extracted fields:', { username, email, password: password ? '***' : undefined });
-      
+
       if (!username || !email || !password) {
-        console.log('Missing fields - username:', !!username, 'email:', !!email, 'password:', !!password);
         return res.status(400).json({ message: "Все поля обязательны" });
       }
 
@@ -59,8 +56,8 @@ export function setupAuth(app: Express) {
 
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
-      
-      // Create user
+
+      // Create user with emailVerified = false
       const user = await storage.createUser({
         username,
         email,
@@ -68,20 +65,32 @@ export function setupAuth(app: Express) {
         role: 'user'
       });
 
-      // Set session
+      // Generate and send verification code
+      const code = generateVerificationCode();
+      await storage.createVerificationCode(user.id, code);
+
+      const emailSent = await sendVerificationCode(email, code);
+      if (!emailSent) {
+        console.error('Failed to send verification email to:', email);
+      }
+
+      // Set session but mark as unverified
       (req.session as any).userId = user.id;
       (req.session as any).user = {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        emailVerified: false
       };
 
       res.status(201).json({
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        emailVerified: false,
+        message: "Код подтверждения отправлен на email"
       });
     } catch (error) {
       console.error('Registration error:', error);
@@ -89,11 +98,83 @@ export function setupAuth(app: Express) {
     }
   });
 
+  // Verify email endpoint
+  app.post("/api/verify-email", async (req: Request, res: Response) => {
+    try {
+      const { code } = req.body;
+      const sessionUser = (req.session as any)?.user;
+
+      if (!sessionUser) {
+        return res.status(401).json({ message: "Требуется авторизация" });
+      }
+
+      if (!code || code.length !== 6) {
+        return res.status(400).json({ message: "Введите 6-значный код" });
+      }
+
+      const verificationCode = await storage.getVerificationCode(sessionUser.id, code);
+      if (!verificationCode) {
+        return res.status(400).json({ message: "Неверный или просроченный код" });
+      }
+
+      // Mark email as verified
+      await storage.markEmailAsVerified(sessionUser.id);
+
+      // Update session
+      (req.session as any).user = {
+        ...sessionUser,
+        emailVerified: true
+      };
+
+      res.json({
+        message: "Email успешно подтверждён",
+        emailVerified: true
+      });
+    } catch (error) {
+      console.error('Email verification error:', error);
+      res.status(500).json({ message: "Ошибка верификации" });
+    }
+  });
+
+  // Resend verification code
+  app.post("/api/resend-code", async (req: Request, res: Response) => {
+    try {
+      const sessionUser = (req.session as any)?.user;
+
+      if (!sessionUser) {
+        return res.status(401).json({ message: "Требуется авторизация" });
+      }
+
+      const user = await storage.getUser(sessionUser.id);
+      if (!user) {
+        return res.status(404).json({ message: "Пользователь не найден" });
+      }
+
+      if (user.emailVerified) {
+        return res.status(400).json({ message: "Email уже подтверждён" });
+      }
+
+      // Generate and send new code
+      const code = generateVerificationCode();
+      await storage.createVerificationCode(user.id, code);
+
+      const emailSent = await sendVerificationCode(user.email, code);
+      if (!emailSent) {
+        return res.status(500).json({ message: "Ошибка отправки кода" });
+      }
+
+      res.json({ message: "Новый код отправлен на email" });
+    } catch (error) {
+      console.error('Resend code error:', error);
+      res.status(500).json({ message: "Ошибка отправки кода" });
+    }
+  });
+
   // Login endpoint
   app.post("/api/login", async (req: Request, res: Response) => {
     try {
       const { username, password } = req.body;
-      
+
       if (!username || !password) {
         return res.status(400).json({ message: "Введите логин и пароль" });
       }
@@ -114,14 +195,23 @@ export function setupAuth(app: Express) {
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        emailVerified: user.emailVerified
       };
+
+      // If email not verified, send new code
+      if (!user.emailVerified) {
+        const code = generateVerificationCode();
+        await storage.createVerificationCode(user.id, code);
+        await sendVerificationCode(user.email, code);
+      }
 
       res.json({
         id: user.id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        emailVerified: user.emailVerified
       });
     } catch (error) {
       console.error('Login error:', error);
@@ -141,17 +231,24 @@ export function setupAuth(app: Express) {
   });
 
   // Get current user endpoint
-  app.get("/api/user", (req: Request, res: Response) => {
-    const user = (req.session as any)?.user;
-    if (!user) {
+  app.get("/api/user", async (req: Request, res: Response) => {
+    const sessionUser = (req.session as any)?.user;
+    if (!sessionUser) {
       return res.status(401).json({ message: "Не авторизован" });
+    }
+
+    // Get fresh user data from DB
+    const user = await storage.getUser(sessionUser.id);
+    if (!user) {
+      return res.status(401).json({ message: "Пользователь не найден" });
     }
 
     res.json({
       id: user.id,
       username: user.username,
       email: user.email,
-      role: user.role
+      role: user.role,
+      emailVerified: user.emailVerified
     });
   });
 }

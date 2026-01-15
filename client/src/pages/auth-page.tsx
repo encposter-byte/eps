@@ -34,14 +34,24 @@ export default function AuthPage() {
 
   // Redirect if already logged in
   if (user) {
-    setLocation("/");
+    // If email not verified, redirect to verification page
+    if (!user.emailVerified) {
+      setLocation("/verify-email");
+    } else {
+      setLocation("/");
+    }
     return null;
   }
 
   const onLogin = (data: LoginForm) => {
     loginMutation.mutate(data, {
-      onSuccess: () => {
-        setLocation("/");
+      onSuccess: (loggedUser) => {
+        // Redirect based on email verification status
+        if (!loggedUser.emailVerified) {
+          setLocation("/verify-email");
+        } else {
+          setLocation("/");
+        }
       },
     });
   };

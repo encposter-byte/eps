@@ -46,10 +46,10 @@ export function SimpleRegisterForm() {
         const user = await response.json();
         toast({
           title: "Регистрация успешна",
-          description: `Добро пожаловать, ${user.username}!`,
+          description: "Код подтверждения отправлен на email",
         });
-        // Перезагружаем страницу для обновления состояния
-        window.location.reload();
+        // Redirect to email verification page
+        window.location.href = "/verify-email";
       } else {
         const error = await response.json();
         toast({

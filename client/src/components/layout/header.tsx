@@ -66,7 +66,7 @@ export default function Header() {
             <div className="flex-shrink-0 md:flex-shrink-0 absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0">
               <Link href="/" className="flex items-center">
                 <img
-                  src="/logo.png"
+                  src="/logo.svg"
                   alt="ЭПС"
                   className="h-8 sm:h-14 w-auto"
                 />

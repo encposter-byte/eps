@@ -22,6 +22,7 @@ export const users = pgTable("users", {
   phone: text("phone"),
   address: text("address"),
   isActive: boolean("is_active").default(true).notNull(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
   lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -433,3 +434,32 @@ export type CategoryWithImage = {
   productCount: number;
   imageUrl: string | null;
 };
+
+// Таблица для хранения кодов верификации email
+export const verificationCodes = pgTable("verification_codes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  code: text("code").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  usedAt: timestamp("used_at"),
+});
+
+export const insertVerificationCodeSchema = createInsertSchema(verificationCodes).pick({
+  userId: true,
+  code: true,
+  expiresAt: true,
+});
+
+export type InsertVerificationCode = z.infer<typeof insertVerificationCodeSchema>;
+export type VerificationCode = typeof verificationCodes.$inferSelect;
+
+// Схема для верификации email
+export const verifyEmailSchema = z.object({
+  code: z.string().length(6, "Код должен содержать 6 цифр"),
+});
+
+// Схема для повторной отправки кода
+export const resendCodeSchema = z.object({
+  email: z.string().email("Введите корректный email"),
+});

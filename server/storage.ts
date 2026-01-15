@@ -7,7 +7,8 @@ import {
   OrderInput, OrderItem, OrderSearchParams, shopSettingsSchema, seoSettingsSchema,
   users, categories, products, cartItems, orders, orderItems, shopSettings,
   passwordResetTokens, InsertPasswordResetToken, PasswordResetToken,
-  wishlistItems, InsertWishlistItem, WishlistItem, CategoryWithImage
+  wishlistItems, InsertWishlistItem, WishlistItem, CategoryWithImage,
+  verificationCodes, InsertVerificationCode, VerificationCode
 } from "@shared/schema";
 import { z } from "zod";
 import { and, eq, like, between, desc, asc, sql, isNull, isNotNull, gte, lte, or, not, ilike } from "drizzle-orm";
@@ -151,6 +152,12 @@ export interface IStorage {
   addToWishlist(userId: number, productId: number): Promise<WishlistItem>;
   removeFromWishlist(userId: number, productId: number): Promise<boolean>;
   isInWishlist(userId: number, productId: number): Promise<boolean>;
+
+  // Email verification operations
+  createVerificationCode(userId: number, code: string): Promise<VerificationCode>;
+  getVerificationCode(userId: number, code: string): Promise<VerificationCode | undefined>;
+  markEmailAsVerified(userId: number): Promise<boolean>;
+  deleteVerificationCodes(userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1199,6 +1206,59 @@ export class DatabaseStorage implements IStorage {
       ));
 
     return result.length > 0;
+  }
+
+  // Email verification operations
+  async createVerificationCode(userId: number, code: string): Promise<VerificationCode> {
+    // Удаляем все предыдущие коды для пользователя
+    await db.delete(verificationCodes).where(eq(verificationCodes.userId, userId));
+
+    // Срок годности - 15 минут
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+    const [result] = await db.insert(verificationCodes).values({
+      userId,
+      code,
+      expiresAt
+    }).returning();
+
+    return result;
+  }
+
+  async getVerificationCode(userId: number, code: string): Promise<VerificationCode | undefined> {
+    const result = await db.select()
+      .from(verificationCodes)
+      .where(
+        and(
+          eq(verificationCodes.userId, userId),
+          eq(verificationCodes.code, code),
+          isNull(verificationCodes.usedAt),
+          gte(verificationCodes.expiresAt, new Date())
+        )
+      );
+
+    return result.length > 0 ? result[0] : undefined;
+  }
+
+  async markEmailAsVerified(userId: number): Promise<boolean> {
+    // Помечаем код как использованный
+    await db.update(verificationCodes)
+      .set({ usedAt: new Date() })
+      .where(eq(verificationCodes.userId, userId));
+
+    // Обновляем пользователя
+    const result = await db.update(users)
+      .set({ emailVerified: true, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return result.length > 0;
+  }
+
+  async deleteVerificationCodes(userId: number): Promise<boolean> {
+    await db.delete(verificationCodes).where(eq(verificationCodes.userId, userId));
+    return true;
   }
 }
 
