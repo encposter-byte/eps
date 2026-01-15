@@ -27,7 +27,6 @@ export async function sendVerificationCode(email: string, code: string): Promise
               <!-- Logo -->
               <div style="text-align: center; margin-bottom: 32px;">
                 <h1 style="color: #dc2626; font-size: 32px; margin: 0;">ЭПС</h1>
-                <p style="color: #71717a; font-size: 14px; margin: 8px 0 0;">Электропневмосервис</p>
               </div>
 
               <!-- Content -->
