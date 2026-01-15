@@ -1,7 +1,14 @@
-import { pgTable, text, serial, integer, boolean, numeric, timestamp, primaryKey, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, numeric, timestamp, primaryKey, jsonb, bigint } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+// Sessions table (managed by connect-pg-simple, but declared here to prevent deletion)
+export const sessions = pgTable("sessions", {
+  sid: text("sid").primaryKey(),
+  sess: jsonb("sess").notNull(),
+  expire: timestamp("expire", { precision: 6 }).notNull(),
+});
 
 // User Schema
 export const users = pgTable("users", {
