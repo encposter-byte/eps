@@ -55,23 +55,56 @@ export default function Footer() {
         {/* Разделитель */}
         <div className="border-t border-slate-700/50 mb-8"></div>
 
-        {/* Адреса */}
-        <div className="text-center mb-8">
+        {/* Наши филиалы */}
+        <div className="mb-8">
           <div className="flex items-center justify-center space-x-2 mb-6">
             <MapPin className="w-5 h-5 text-eps-orange" />
-            <h4 className="text-lg font-semibold text-white">Наши адреса</h4>
+            <h4 className="text-lg font-semibold text-white">Наши филиалы</h4>
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             {[
-              "Волгоград, ул. им. Маршала Еременко, д. 44",
-              "Ростов-на-Дону, пр. Королёва, д. 1Э",
-              "Санкт-Петербург, пр. Железнодорожный, д. 14 к7",
-              "Новороссийск, с. Гайдук, ул. Строительная д. 14",
-              "Мариуполь, ул. Соборная, д. 10"
-            ].map((address, index) => (
-              <div key={index} className="flex items-center space-x-2 px-4 py-2 bg-slate-800/50 rounded-full text-sm">
-                <MapPin className="w-3 h-3 text-eps-orange flex-shrink-0" />
-                <span className="text-gray-300">{address}</span>
+              {
+                city: "Волгоград",
+                address: "ул. им. Маршала Еременко, д. 44",
+                phone: "+7 (8442) 50-18-35"
+              },
+              {
+                city: "Ростов-на-Дону",
+                address: "пр. Королёва, д. 1Э",
+                phone: "+7 (863) 333-18-35"
+              },
+              {
+                city: "Санкт-Петербург",
+                address: "пр. Железнодорожный, д. 14 к7",
+                phone: "+7 (812) 509-18-35"
+              },
+              {
+                city: "Новороссийск",
+                address: "с. Гайдук, ул. Строительная д. 14",
+                phone: "+7 (8617) 30-18-35"
+              },
+              {
+                city: "Мариуполь",
+                address: "ул. Соборная, д. 10",
+                phone: "+7 (800) 101-38-35"
+              }
+            ].map((branch, index) => (
+              <div
+                key={index}
+                className="p-4 rounded-xl bg-slate-800/50 hover:bg-slate-800/70 transition-all"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-4 h-4 flex-shrink-0 text-eps-orange" />
+                  <h5 className="font-semibold text-white">{branch.city}</h5>
+                </div>
+                <p className="text-gray-400 text-sm mb-2 leading-tight">{branch.address}</p>
+                <a
+                  href={`tel:${branch.phone.replace(/[^\d+]/g, '')}`}
+                  className="flex items-center gap-1.5 text-sm text-gray-300 hover:text-eps-orange transition"
+                >
+                  <Phone className="w-3 h-3" />
+                  {branch.phone}
+                </a>
               </div>
             ))}
           </div>
