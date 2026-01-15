@@ -166,7 +166,7 @@ export default function Home() {
   const totalPages = productsData?.totalPages || 1;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <Helmet>
         <title>ЭПС - Профессиональные инструменты</title>
         <meta
@@ -195,8 +195,8 @@ export default function Home() {
       />
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex gap-6">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+        <div className="flex gap-4 sm:gap-6">
           {/* Desktop Sidebar */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <FilterSidebar
@@ -210,33 +210,33 @@ export default function Home() {
           {/* Products Grid */}
           <div className="flex-1">
             {isLoading ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
                 {[...Array(12)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-lg p-4">
-                    <Skeleton className="aspect-square w-full mb-4" />
-                    <Skeleton className="h-4 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2 mb-4" />
-                    <Skeleton className="h-8 w-full" />
+                  <div key={i} className="bg-white rounded-lg p-2 sm:p-4">
+                    <Skeleton className="aspect-square w-full mb-2 sm:mb-4" />
+                    <Skeleton className="h-3 sm:h-4 w-3/4 mb-1 sm:mb-2" />
+                    <Skeleton className="h-3 sm:h-4 w-1/2 mb-2 sm:mb-4" />
+                    <Skeleton className="h-6 sm:h-8 w-full" />
                   </div>
                 ))}
               </div>
             ) : products.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <PackageX className="h-16 w-16 text-gray-300 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              <div className="flex flex-col items-center justify-center py-10 sm:py-20 text-center px-4">
+                <PackageX className="h-12 w-12 sm:h-16 sm:w-16 text-gray-300 mb-3 sm:mb-4" />
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
                   Товары не найдены
                 </h3>
-                <p className="text-gray-500 mb-6 max-w-md">
+                <p className="text-sm sm:text-base text-gray-500 mb-4 sm:mb-6 max-w-md">
                   Попробуйте изменить параметры фильтрации или сбросить фильтры
                 </p>
-                <Button onClick={handleResetFilters} variant="outline">
+                <Button onClick={handleResetFilters} variant="outline" size="sm">
                   Сбросить фильтры
                 </Button>
               </div>
             ) : (
               <>
                 {/* Products Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4">
                   {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
@@ -244,22 +244,24 @@ export default function Home() {
 
                 {/* Loading indicator for pagination */}
                 {isFetching && !isLoading && (
-                  <div className="flex justify-center py-4">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <div className="flex justify-center py-3 sm:py-4">
+                    <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-primary" />
                   </div>
                 )}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex justify-center gap-2 mt-8">
+                  <div className="flex justify-center items-center gap-1 sm:gap-2 mt-6 sm:mt-8 flex-wrap">
                     <Button
                       variant="outline"
+                      size="sm"
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
+                      className="h-8 sm:h-9 px-2 sm:px-4 text-xs sm:text-sm"
                     >
                       Назад
                     </Button>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-0.5 sm:gap-1">
                       {[...Array(Math.min(5, totalPages))].map((_, i) => {
                         let pageNum: number;
                         if (totalPages <= 5) {
@@ -278,7 +280,7 @@ export default function Home() {
                             variant={page === pageNum ? "default" : "outline"}
                             size="sm"
                             onClick={() => setPage(pageNum)}
-                            className="w-10"
+                            className="w-7 h-7 sm:w-9 sm:h-9 p-0 text-xs sm:text-sm"
                           >
                             {pageNum}
                           </Button>
@@ -287,8 +289,10 @@ export default function Home() {
                     </div>
                     <Button
                       variant="outline"
+                      size="sm"
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={page === totalPages}
+                      className="h-8 sm:h-9 px-2 sm:px-4 text-xs sm:text-sm"
                     >
                       Вперед
                     </Button>

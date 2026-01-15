@@ -27,11 +27,11 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white z-30 shadow-sm border-b border-red-100">
+    <header className="bg-white z-30 shadow-sm border-b border-red-100 overflow-hidden">
       {/* Основная шапка */}
       <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 sm:h-20 items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex h-14 sm:h-20 items-center justify-between">
 
             {/* Левая часть: Телефон, график и О компании (только десктоп) */}
             <div className="hidden md:flex items-center flex-1">
@@ -62,7 +62,7 @@ export default function Header() {
                 <img
                   src="/logo.png"
                   alt="ЭПС"
-                  className="h-10 sm:h-14 w-auto"
+                  className="h-8 sm:h-14 w-auto"
                 />
               </Link>
             </div>
@@ -123,22 +123,22 @@ export default function Header() {
             </div>
 
             {/* Мобильные элементы в шапке */}
-            <div className="flex items-center space-x-3 md:hidden">
-              <Link href="/cart" className="text-gray-700 relative p-2">
-                <ShoppingCart className="h-6 w-6" />
+            <div className="flex items-center space-x-1 sm:space-x-3 md:hidden">
+              <Link href="/cart" className="text-gray-700 relative p-1.5 sm:p-2">
+                <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                 {itemCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-eps-red text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-                    {itemCount}
+                  <span className="absolute -top-0.5 -right-0.5 sm:top-0 sm:right-0 bg-eps-red text-white text-[10px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full">
+                    {itemCount > 99 ? "99" : itemCount}
                   </span>
                 )}
               </Link>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-700"
+                className="text-gray-700 h-9 w-9 sm:h-10 sm:w-10"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                {mobileMenuOpen ? <X className="h-5 w-5 sm:h-6 sm:w-6" /> : <Menu className="h-5 w-5 sm:h-6 sm:w-6" />}
               </Button>
             </div>
           </div>
