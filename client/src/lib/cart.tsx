@@ -94,10 +94,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Add item to cart
   const addToCart = async (productId: number, quantity = 1) => {
     if (!cartId) return;
-    
+
     setIsLoading(true);
     try {
-      await apiRequest("POST", "/api/cart/items", {
+      await apiRequest("POST", "/api/cart", {
         cartId,
         productId,
         quantity
@@ -123,10 +123,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Update item quantity
   const updateQuantity = async (itemId: number, quantity: number) => {
     if (!cartId) return;
-    
+
     setIsLoading(true);
     try {
-      await apiRequest("PATCH", `/api/cart/items/${itemId}`, { quantity });
+      await apiRequest("PUT", `/api/cart/${itemId}`, { quantity });
       await fetchCart();
     } catch (error) {
       toast({
@@ -142,10 +142,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Remove item from cart
   const removeItem = async (itemId: number) => {
     if (!cartId) return;
-    
+
     setIsLoading(true);
     try {
-      await apiRequest("DELETE", `/api/cart/items/${itemId}`);
+      await apiRequest("DELETE", `/api/cart/${itemId}`);
       await fetchCart();
       
       toast({
@@ -166,20 +166,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Clear cart
   const clearCart = async () => {
     if (!cartId) return;
-    
+
     setIsLoading(true);
     try {
-      await apiRequest("DELETE", `/api/cart/${cartId}`);
+      await apiRequest("DELETE", `/api/cart/clear/${cartId}`);
       await fetchCart();
-      
+
       toast({
-        title: "Cart cleared",
-        description: "All items have been removed from your cart",
+        title: "Корзина очищена",
+        description: "Все товары удалены из корзины",
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to clear cart",
+        title: "Ошибка",
+        description: "Не удалось очистить корзину",
         variant: "destructive",
       });
     } finally {

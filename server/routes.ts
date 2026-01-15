@@ -718,7 +718,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const cartId = req.params.cartId;
       const items = await storage.getCartItemWithProduct(cartId);
-      res.json(items);
+
+      // Calculate itemCount and subtotal
+      const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+      const subtotal = items.reduce((sum, item) => sum + item.quantity * Number(item.product.price), 0);
+
+      res.json({
+        items,
+        itemCount,
+        subtotal
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
