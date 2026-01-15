@@ -27,6 +27,11 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Health check endpoint for Replit - must respond immediately
+app.get('/health', (_req, res) => {
+  res.status(200).send('OK');
+});
+
 // Раздача изображений DCK из папки attached_assets
 app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets'), {
   maxAge: '1d',

@@ -10,3 +10,7 @@ nodejs = "latest"
 [deployment]
 run = ["npm", "start"]
 build = ["npm", "run", "build"]
+deploymentTarget = "cloudrun"
+
+[deployment.healthCheck]
+path = "/health"
