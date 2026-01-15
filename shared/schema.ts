@@ -1,13 +1,14 @@
-import { pgTable, text, serial, integer, boolean, numeric, timestamp, primaryKey, jsonb, bigint } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, numeric, timestamp, primaryKey, jsonb, bigint, varchar, json } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Sessions table (managed by connect-pg-simple, but declared here to prevent deletion)
+// Using varchar and json to match existing table structure exactly
 export const sessions = pgTable("sessions", {
-  sid: text("sid").primaryKey(),
-  sess: jsonb("sess").notNull(),
-  expire: timestamp("expire", { precision: 6 }).notNull(),
+  sid: varchar("sid").primaryKey(),
+  sess: json("sess").notNull().$type<Record<string, unknown>>(),
+  expire: timestamp("expire", { precision: 6, withTimezone: true }).notNull(),
 });
 
 // User Schema
