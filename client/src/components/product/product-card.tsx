@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Heart, ShoppingCart, Star, Eye } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useWishlist } from "@/lib/wishlist";
 import { Product } from "@shared/schema";
@@ -19,11 +18,15 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const isWishlisted = isInWishlist(product.id);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     addToCart(product.id);
   };
 
-  const toggleWishlist = async () => {
+  const toggleWishlist = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (isWishlisted) {
       await removeFromWishlist(product.id);
     } else {
@@ -31,153 +34,100 @@ export default function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  // Безопасное форматирование цены с проверкой на null/undefined
-  // Округляем до целых для больших сумм
+  // Форматирование цены без копеек
   const formatPrice = (price: string | number | null | undefined) => {
     if (price == null) return "0 ₽";
     const num = Number(price);
     return Math.round(num).toLocaleString('ru-RU') + " ₽";
   };
 
+  const hasDiscount = product.originalPrice && Number(product.originalPrice) > Number(product.price);
+  const hasPrice = Number(product.price) > 0;
+
   return (
-    <Card className="product-card group h-full flex flex-col bg-white border-0 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-      <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-        <Link href={`/product/${product.slug}`}>
-          <div className="relative min-h-[220px] flex items-center justify-center p-6 group-hover:scale-105 transition-transform duration-300">
-            {/* Декоративные элементы */}
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+    <Card className="product-card group h-full flex flex-col bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-200">
+      <Link href={`/product/${product.slug}`} className="flex flex-col h-full">
+        {/* Изображение */}
+        <div className="relative bg-gray-50 p-3 sm:p-4">
+          {/* Кнопка избранного */}
+          <button
+            onClick={toggleWishlist}
+            className="absolute top-2 right-2 z-10 p-1.5 sm:p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+          >
+            <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${isWishlisted ? 'fill-eps-red text-eps-red' : 'text-gray-400'}`} />
+          </button>
 
-            {/* Изображение товара */}
-            <div className="relative z-10 text-center">
-              <div className="w-full h-32 mx-auto mb-4 flex items-center justify-center">
-                {product.imageUrl && !imageError ? (
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="max-w-full max-h-full object-contain"
-                    onError={() => setImageError(true)}
-                  />
-                ) : (
-                  <div className="w-20 h-20 bg-gradient-to-br from-eps-red/10 to-eps-yellow/10 rounded-full flex items-center justify-center">
-                    <svg className="w-10 h-10 text-eps-red" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">{product.name}</h3>
-              <p className="text-sm text-gray-500">Артикул: {product.sku}</p>
-            </div>
-          </div>
-        </Link>
-
-        {/* Действия в правом верхнем углу */}
-        <div className="absolute top-3 right-3 z-20 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="bg-white/90 backdrop-blur-sm shadow-lg text-gray-600 hover:text-eps-red h-10 w-10 rounded-full border border-white/20"
-                  onClick={toggleWishlist}
-                >
-                  <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-eps-red text-eps-red' : ''}`} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{isWishlisted ? 'Удалить из избранного' : 'Добавить в избранное'}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="bg-white/90 backdrop-blur-sm shadow-lg text-gray-600 hover:text-eps-red h-10 w-10 rounded-full border border-white/20"
-                  asChild
-                >
-                  <Link href={`/product/${product.slug}`}>
-                    <Eye className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Быстрый просмотр</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
-        {/* Бейджи для скидок */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
-          {product.originalPrice && Number(product.originalPrice) > Number(product.price) && (
-            <div className="inline-block">
-              <span className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-                -{Math.round(((Number(product.originalPrice) - Number(product.price)) / Number(product.originalPrice)) * 100)}%
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <CardContent className="p-6 flex flex-col flex-grow bg-white">
-        {/* Отзывы и рейтинг */}
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center space-x-1">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star 
-                key={i} 
-                className={`h-4 w-4 ${i < (Number(product.rating) || 0) ? 'fill-eps-yellow text-eps-yellow' : 'text-gray-200'}`} 
-              />
-            ))}
-            <span className="text-xs text-gray-500 ml-2">{product.rating || 0}</span>
-          </div>
-          {product.reviewCount && (
-            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-              {product.reviewCount} отзывов
+          {/* Бейдж скидки */}
+          {hasDiscount && (
+            <span className="absolute top-2 left-2 bg-eps-red text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full">
+              -{Math.round(((Number(product.originalPrice) - Number(product.price)) / Number(product.originalPrice)) * 100)}%
             </span>
           )}
+
+          {/* Картинка */}
+          <div className="h-24 sm:h-32 flex items-center justify-center">
+            {product.imageUrl && !imageError ? (
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="max-w-full max-h-full object-contain"
+                onError={() => setImageError(true)}
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                <svg className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" viewBox="0 0 24 24" fill="none">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Короткое описание */}
-        <p className="text-sm text-gray-600 mb-4 line-clamp-2 flex-grow leading-relaxed">
-          {product.shortDescription || (product.description ? product.description.substring(0, 120) + "..." : "Профессиональный инструмент высокого качества")}
-        </p>
+        {/* Контент */}
+        <CardContent className="p-3 sm:p-4 flex flex-col flex-grow">
+          {/* Название */}
+          <h3 className="text-sm sm:text-base font-medium text-gray-900 line-clamp-2 mb-1 sm:mb-2 leading-tight">
+            {product.name}
+          </h3>
 
-        {/* Цена и кнопка в корзину */}
-        <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 gap-3">
-          {/* Показываем цену только если она больше 0 */}
-          {Number(product.price) > 0 ? (
-            <div className="flex flex-col min-w-0">
-              {product.originalPrice && Number(product.originalPrice) > Number(product.price) ? (
-                <>
-                  <span className="text-lg font-bold text-eps-red whitespace-nowrap">{formatPrice(product.price)}</span>
-                  <span className="text-xs text-gray-400 line-through whitespace-nowrap">{formatPrice(product.originalPrice)}</span>
-                </>
+          {/* Артикул */}
+          <p className="text-xs text-gray-400 mb-2 sm:mb-3">
+            Арт: {product.sku}
+          </p>
+
+          {/* Цена и кнопка */}
+          <div className="mt-auto">
+            {/* Цена */}
+            <div className="mb-2 sm:mb-3">
+              {hasPrice ? (
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className={`text-base sm:text-lg font-bold ${hasDiscount ? 'text-eps-red' : 'text-gray-900'}`}>
+                    {formatPrice(product.price)}
+                  </span>
+                  {hasDiscount && (
+                    <span className="text-xs sm:text-sm text-gray-400 line-through">
+                      {formatPrice(product.originalPrice)}
+                    </span>
+                  )}
+                </div>
               ) : (
-                <span className="text-lg font-bold text-gray-900 whitespace-nowrap">{formatPrice(product.price)}</span>
+                <span className="text-sm font-medium text-eps-red">По запросу</span>
               )}
             </div>
-          ) : (
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-eps-red">По запросу</span>
-            </div>
-          )}
 
-          <Button
-            className="bg-gradient-to-r from-eps-red to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-2 rounded-lg font-medium flex-shrink-0"
-            onClick={handleAddToCart}
-            disabled={isLoading}
-          >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            В корзину
-          </Button>
-        </div>
-      </CardContent>
+            {/* Кнопка в корзину */}
+            <Button
+              className="w-full bg-eps-red hover:bg-red-600 text-white text-xs sm:text-sm py-2 sm:py-2.5 rounded-lg font-medium"
+              onClick={handleAddToCart}
+              disabled={isLoading}
+            >
+              <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+              В корзину
+            </Button>
+          </div>
+        </CardContent>
+      </Link>
     </Card>
   );
 }
