@@ -81,7 +81,7 @@ export default function ContactsPage() {
                   <div className="pb-3 border-b border-gray-100">
                     <p className="font-medium text-gray-800">г. Санкт-Петербург</p>
                     <p className="text-gray-600 mb-1">Адрес: проспект Железнодорожный, д. 14 к7</p>
-                    <p className="text-gray-600">Тел.: +7 981 858-21-43</p>
+                    <p className="text-gray-600">Тел.: +7 905 063-96-66</p>
                   </div>
                   
                   <div className="pb-3 border-b border-gray-100">
@@ -93,7 +93,7 @@ export default function ContactsPage() {
                   <div>
                     <p className="font-medium text-gray-800">г. Мариуполь</p>
                     <p className="text-gray-600 mb-1">Адрес: ул. Соборная, д. 10</p>
-                    <p className="text-gray-600">Тел.: +7 949 023-20-77</p>
+                    <p className="text-gray-600">Тел.: +7 999 749-97-77</p>
                   </div>
                 </div>
               </div>
