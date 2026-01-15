@@ -166,7 +166,7 @@ export default function Home() {
   const totalPages = productsData?.totalPages || 1;
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50">
       <Helmet>
         <title>ЭПС - Профессиональные инструменты</title>
         <meta

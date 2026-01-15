@@ -119,7 +119,7 @@ export default function CategoryStrip({
   }
 
   return (
-    <div className="border-b bg-white sticky top-0 z-40 overflow-hidden">
+    <div className="border-b bg-white sticky top-14 sm:top-20 z-40">
       <div className="container mx-auto px-2 sm:px-4 relative">
         {/* Стрелка влево */}
         {canScrollLeft && (

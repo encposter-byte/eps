@@ -33,7 +33,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white z-30 shadow-sm border-b border-red-100 overflow-hidden">
+    <header className="bg-white z-50 shadow-sm border-b border-red-100 sticky top-0">
       {/* Основная шапка */}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
