@@ -44,23 +44,30 @@ export default function Header() {
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between">
-            {/* Левая часть: Телефон и график (только десктоп) */}
-            <div className="hidden md:flex items-center space-x-4 flex-1">
-              <a href="tel:88001013835" className="flex items-center text-gray-700 hover:text-eps-red group">
-                <div className="flex items-center">
-                  <div className="p-2 bg-gray-100 rounded-full group-hover:bg-red-50 transition-colors duration-300">
-                    <Phone className="h-5 w-5" />
+            {/* Левая часть: Телефон, график и О компании (только десктоп) */}
+            <div className="hidden md:flex items-center flex-1">
+              <div className="flex items-center space-x-3">
+                <a href="tel:88001013835" className="flex items-center text-gray-700 hover:text-eps-red group">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-gray-100 rounded-full group-hover:bg-red-50 transition-colors duration-300">
+                      <Phone className="h-5 w-5" />
+                    </div>
+                    <span className="ml-2 font-medium text-sm">8 800 101 38 35</span>
                   </div>
-                  <span className="ml-2 font-medium text-sm">8 800 101 38 35</span>
-                </div>
-              </a>
-              <div className="flex items-center text-gray-700 group">
-                <div className="flex items-center">
-                  <div className="p-2 bg-gray-100 rounded-full transition-colors duration-300">
-                    <Clock className="h-5 w-5" />
+                </a>
+                <div className="flex items-center text-gray-700 group">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-gray-100 rounded-full transition-colors duration-300">
+                      <Clock className="h-5 w-5" />
+                    </div>
+                    <span className="ml-2 font-medium text-sm">пн–пт 8:00–18:00</span>
                   </div>
-                  <span className="ml-2 font-medium text-sm">пн–пт 8:00–18:00</span>
                 </div>
+              </div>
+              <div className="flex-1 flex justify-end pr-8">
+                <Link href="/about" className="text-gray-700 hover:text-eps-red font-medium text-sm transition-colors">
+                  О компании
+                </Link>
               </div>
             </div>
 
@@ -75,61 +82,68 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* Правая часть: Корзина и авторизация (только десктоп) */}
-            <div className="hidden md:flex items-center justify-end space-x-6 flex-1">
-              {/* Корзина */}
-              <Link href="/cart" className="flex items-center text-gray-700 hover:text-eps-red relative group">
-                <div className="flex items-center">
-                  <div className="relative">
-                    <div className="p-2 bg-gray-100 rounded-full group-hover:bg-red-50 transition-colors duration-300">
-                      <ShoppingCart className="h-5 w-5" />
-                    </div>
-                    {itemCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-eps-red text-white text-xs font-medium w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
-                        {itemCount}
-                      </span>
-                    )}
-                  </div>
-                  <span className="ml-2 font-medium text-sm">Корзина</span>
-                </div>
-              </Link>
-
-              {user ? (
-                <>
-                  <Link href="/profile" className="flex items-center text-gray-700 hover:text-orange-600 group">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
-                        <User className="h-5 w-5" />
-                      </div>
-                      <span className="ml-2 font-medium text-sm">Профиль</span>
-                    </div>
-                  </Link>
-
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center text-gray-700 hover:text-orange-600 group"
-                    disabled={logoutMutation.isPending}
-                  >
-                    <div className="flex items-center">
-                      <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
-                        <LogOut className="h-5 w-5" />
-                      </div>
-                      <span className="ml-2 font-medium text-sm">
-                        {logoutMutation.isPending ? "Выход..." : "Выйти"}
-                      </span>
-                    </div>
-                  </button>
-                </>
-              ) : (
-                <Link href="/auth" className="flex items-center text-gray-700 hover:text-orange-600 group">
+            {/* Правая часть: Контакты, Корзина и авторизация (только десктоп) */}
+            <div className="hidden md:flex items-center flex-1">
+              <div className="flex-1 flex justify-start pl-8">
+                <Link href="/contacts" className="text-gray-700 hover:text-eps-red font-medium text-sm transition-colors">
+                  Контакты
+                </Link>
+              </div>
+              <div className="flex items-center space-x-4">
+                {/* Корзина */}
+                <Link href="/cart" className="flex items-center text-gray-700 hover:text-eps-red relative group">
                   <div className="flex items-center">
-                    <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
-                      <LogIn className="h-5 w-5" />
+                    <div className="relative">
+                      <div className="p-2 bg-gray-100 rounded-full group-hover:bg-red-50 transition-colors duration-300">
+                        <ShoppingCart className="h-5 w-5" />
+                      </div>
+                      {itemCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-eps-red text-white text-xs font-medium w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
+                          {itemCount}
+                        </span>
+                      )}
                     </div>
-                    <span className="ml-2 font-medium text-sm">Войти</span>
+                    <span className="ml-2 font-medium text-sm">Корзина</span>
                   </div>
                 </Link>
-              )}
+
+                {user ? (
+                  <>
+                    <Link href="/profile" className="flex items-center text-gray-700 hover:text-orange-600 group">
+                      <div className="flex items-center">
+                        <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
+                          <User className="h-5 w-5" />
+                        </div>
+                        <span className="ml-2 font-medium text-sm">Профиль</span>
+                      </div>
+                    </Link>
+
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center text-gray-700 hover:text-orange-600 group"
+                      disabled={logoutMutation.isPending}
+                    >
+                      <div className="flex items-center">
+                        <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
+                          <LogOut className="h-5 w-5" />
+                        </div>
+                        <span className="ml-2 font-medium text-sm">
+                          {logoutMutation.isPending ? "Выход..." : "Выйти"}
+                        </span>
+                      </div>
+                    </button>
+                  </>
+                ) : (
+                  <Link href="/auth" className="flex items-center text-gray-700 hover:text-orange-600 group">
+                    <div className="flex items-center">
+                      <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
+                        <LogIn className="h-5 w-5" />
+                      </div>
+                      <span className="ml-2 font-medium text-sm">Войти</span>
+                    </div>
+                  </Link>
+                )}
+              </div>
             </div>
 
             {/* Мобильные элементы */}

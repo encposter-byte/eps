@@ -32,9 +32,11 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   // Безопасное форматирование цены с проверкой на null/undefined
+  // Округляем до целых для больших сумм
   const formatPrice = (price: string | number | null | undefined) => {
     if (price == null) return "0 ₽";
-    return Number(price).toLocaleString('ru-RU') + " ₽";
+    const num = Number(price);
+    return Math.round(num).toLocaleString('ru-RU') + " ₽";
   };
 
   return (
@@ -147,27 +149,27 @@ export default function ProductCard({ product }: ProductCardProps) {
         </p>
 
         {/* Цена и кнопка в корзину */}
-        <div className="flex items-end justify-between mt-auto pt-4 border-t border-gray-100">
+        <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 gap-3">
           {/* Показываем цену только если она больше 0 */}
           {Number(product.price) > 0 ? (
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               {product.originalPrice && Number(product.originalPrice) > Number(product.price) ? (
                 <>
-                  <span className="text-xl font-bold text-eps-red">{formatPrice(product.price)}</span>
-                  <span className="text-sm text-gray-500 line-through">{formatPrice(product.originalPrice)}</span>
+                  <span className="text-lg font-bold text-eps-red whitespace-nowrap">{formatPrice(product.price)}</span>
+                  <span className="text-xs text-gray-400 line-through whitespace-nowrap">{formatPrice(product.originalPrice)}</span>
                 </>
               ) : (
-                <span className="text-xl font-bold text-gray-900">{formatPrice(product.price)}</span>
+                <span className="text-lg font-bold text-gray-900 whitespace-nowrap">{formatPrice(product.price)}</span>
               )}
             </div>
           ) : (
             <div className="flex flex-col">
-              <span className="text-sm text-gray-500">Цена по запросу</span>
+              <span className="text-sm font-medium text-eps-red">По запросу</span>
             </div>
           )}
 
-          <Button 
-            className="bg-gradient-to-r from-eps-red to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-lg font-medium"
+          <Button
+            className="bg-gradient-to-r from-eps-red to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-2 rounded-lg font-medium flex-shrink-0"
             onClick={handleAddToCart}
             disabled={isLoading}
           >

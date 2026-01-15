@@ -1,0 +1,6 @@
+run = "npm start"
+build = "npm run build"
+
+[deployment]
+run = ["sh", "-c", "npm start"]
+build = ["sh", "-c", "npm run build"]
