@@ -397,21 +397,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Try to parse as integer first (ID)
       const idNumber = parseInt(req.params.id);
+      let product;
 
       // If it's a valid number, search by ID
       if (!isNaN(idNumber)) {
-        const product = await storage.getProductById(idNumber);
-        if (product) {
-          return res.json(product);
-        }
+        product = await storage.getProductById(idNumber);
       }
 
       // Otherwise, search by slug
-      const product = await storage.getProductBySlug(req.params.id);
+      if (!product) {
+        product = await storage.getProductBySlug(req.params.id);
+      }
+
       if (!product) {
         return res.status(404).json({ message: "Товар не найден" });
       }
-      res.json(product);
+
+      // Get category info for breadcrumbs
+      const category = await storage.getCategoryById(product.categoryId);
+
+      res.json({
+        ...product,
+        category: category ? { id: category.id, name: category.name, slug: category.slug } : null
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

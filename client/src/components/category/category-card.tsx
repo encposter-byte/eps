@@ -42,7 +42,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   const colorClass = getCategoryColor();
 
   return (
-    <Link href={`/category/${category.slug}`}>
+    <Link href={`/?category=${category.slug}`}>
       <Card className="group relative bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-0 h-64">
         {/* Gradient Background */}
         <div className={`absolute inset-0 bg-gradient-to-br from-${colorClass}/5 via-transparent to-${colorClass}/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>

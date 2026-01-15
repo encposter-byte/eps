@@ -27,6 +27,7 @@ interface Product {
   category?: {
     id: number;
     name: string;
+    slug: string;
   };
   specifications?: Record<string, string>;
 }
@@ -133,8 +134,8 @@ export default function ProductDetails() {
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link 
-                      to={`/category/${product.categoryId}`}
+                    <Link
+                      to={`/?category=${product.category.slug}`}
                       className="transition-colors hover:text-foreground/80"
                     >
                       {product.category.name}

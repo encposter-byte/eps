@@ -18,7 +18,7 @@ import MobileCategoryDrawer from "@/components/mobile/MobileCategoryDrawer";
 // Pages
 import Home from "@/pages/home";
 import ProductDetails from "@/pages/product-details";
-import Category from "@/pages/category";
+// Category page removed - using Home with filter instead
 import Cart from "@/pages/cart";
 import Checkout from "@/pages/checkout";
 import OrderComplete from "@/pages/order-complete";
@@ -49,7 +49,7 @@ function Router() {
   const isAdminRoute = location.startsWith("/admin");
 
   const handleCategorySelect = (slug: string) => {
-    setLocation(`/category/${slug}`);
+    setLocation(`/?category=${slug}`);
     setCategoryDrawerOpen(false);
   };
 
@@ -62,7 +62,7 @@ function Router() {
           {/* Public Routes */}
           <Route path="/" component={Home} />
           <Route path="/product/:slug" component={ProductDetails} />
-          <Route path="/category/:slug" component={Category} />
+          {/* Category page removed - using /?category=slug instead */}
           <Route path="/cart" component={Cart} />
           <Route path="/auth" component={AuthPage} />
           <Route path="/password-reset" component={PasswordResetPage} />
