@@ -3,7 +3,13 @@ import { Link, useLocation } from "wouter";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { User, ShoppingCart, Menu, X, LogIn, LogOut, Phone, Clock, Home, FileText, MapPin, Building2 } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { User, ShoppingCart, Menu, LogIn, LogOut, Phone, Clock, Home, FileText, MapPin, Building2 } from "lucide-react";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,7 +37,7 @@ export default function Header() {
       {/* Основная шапка */}
       <div className="bg-white">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex h-14 sm:h-20 items-center justify-between">
+          <div className="flex h-14 sm:h-20 items-center justify-between relative">
 
             {/* Левая часть: Телефон, график и О компании (только десктоп) */}
             <div className="hidden md:flex items-center flex-1">
@@ -57,7 +63,7 @@ export default function Header() {
             </div>
 
             {/* Центр: Логотип */}
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 md:flex-shrink-0 absolute left-1/2 -translate-x-1/2 md:relative md:left-auto md:translate-x-0">
               <Link href="/" className="flex items-center">
                 <img
                   src="/logo.png"
@@ -122,8 +128,19 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Мобильные элементы в шапке */}
-            <div className="flex items-center space-x-1 sm:space-x-3 md:hidden">
+            {/* Мобильные элементы в шапке: слева меню, справа корзина */}
+            <div className="flex md:hidden items-center absolute left-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-700 h-9 w-9 sm:h-10 sm:w-10"
+                onClick={() => setMobileMenuOpen(true)}
+              >
+                <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+              </Button>
+            </div>
+
+            <div className="flex md:hidden items-center absolute right-3">
               <Link href="/cart" className="text-gray-700 relative p-1.5 sm:p-2">
                 <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                 {itemCount > 0 && (
@@ -132,56 +149,55 @@ export default function Header() {
                   </span>
                 )}
               </Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-700 h-9 w-9 sm:h-10 sm:w-10"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5 sm:h-6 sm:w-6" /> : <Menu className="h-5 w-5 sm:h-6 sm:w-6" />}
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Мобильное выпадающее меню */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
-          <div className="px-4 py-4 space-y-1">
+      {/* Мобильное выдвигающееся меню слева */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent side="left" className="w-[280px] sm:w-[320px] p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle className="text-left">Меню</SheetTitle>
+          </SheetHeader>
+          <div className="py-4 space-y-1 overflow-y-auto max-h-[calc(100vh-80px)]">
             {/* Авторизация/Профиль */}
-            {user ? (
-              <div className="flex items-center justify-between py-3 px-3 bg-gray-50 rounded-lg mb-3">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-eps-red/10 rounded-full flex items-center justify-center">
-                    <User className="h-5 w-5 text-eps-red" />
+            <div className="px-4 mb-3">
+              {user ? (
+                <div className="flex items-center justify-between py-3 px-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-eps-red/10 rounded-full flex items-center justify-center">
+                      <User className="h-5 w-5 text-eps-red" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="font-medium text-gray-900">{user.username}</p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
                   </div>
-                  <div className="ml-3">
-                    <p className="font-medium text-gray-900">{user.username}</p>
-                    <p className="text-xs text-gray-500">{user.email}</p>
-                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="p-2 text-gray-500 hover:text-eps-red"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </button>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="p-2 text-gray-500 hover:text-eps-red"
+              ) : (
+                <Link
+                  href="/auth"
+                  className="flex items-center justify-center w-full py-3 bg-eps-red text-white font-medium rounded-lg"
+                  onClick={() => setMobileMenuOpen(false)}
                 >
-                  <LogOut className="h-5 w-5" />
-                </button>
-              </div>
-            ) : (
-              <Link
-                href="/auth"
-                className="flex items-center justify-center w-full py-3 bg-eps-red text-white font-medium rounded-lg mb-3"
-              >
-                <LogIn className="h-5 w-5 mr-2" />
-                Войти
-              </Link>
-            )}
+                  <LogIn className="h-5 w-5 mr-2" />
+                  Войти
+                </Link>
+              )}
+            </div>
 
             {/* Пункты меню */}
             <Link
               href="/"
-              className="flex items-center px-3 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+              className="flex items-center px-7 py-3 text-gray-700 hover:bg-gray-50"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <Home className="h-5 w-5 mr-3 text-gray-400" />
               <span className="font-medium">Главная</span>
@@ -190,7 +206,8 @@ export default function Header() {
             {user && (
               <Link
                 href="/profile"
-                className="flex items-center px-3 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+                className="flex items-center px-7 py-3 text-gray-700 hover:bg-gray-50"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 <User className="h-5 w-5 mr-3 text-gray-400" />
                 <span className="font-medium">Мой профиль</span>
@@ -199,7 +216,8 @@ export default function Header() {
 
             <Link
               href="/publications"
-              className="flex items-center px-3 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+              className="flex items-center px-7 py-3 text-gray-700 hover:bg-gray-50"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <FileText className="h-5 w-5 mr-3 text-gray-400" />
               <span className="font-medium">Новости</span>
@@ -207,7 +225,8 @@ export default function Header() {
 
             <Link
               href="/contacts"
-              className="flex items-center px-3 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+              className="flex items-center px-7 py-3 text-gray-700 hover:bg-gray-50"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <MapPin className="h-5 w-5 mr-3 text-gray-400" />
               <span className="font-medium">Контакты</span>
@@ -215,7 +234,8 @@ export default function Header() {
 
             <Link
               href="/about"
-              className="flex items-center px-3 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+              className="flex items-center px-7 py-3 text-gray-700 hover:bg-gray-50"
+              onClick={() => setMobileMenuOpen(false)}
             >
               <Building2 className="h-5 w-5 mr-3 text-gray-400" />
               <span className="font-medium">О компании</span>
@@ -224,14 +244,15 @@ export default function Header() {
             {user?.role === 'admin' && (
               <Link
                 href="/admin"
-                className="flex items-center px-3 py-3 text-eps-red hover:bg-red-50 rounded-lg"
+                className="flex items-center px-7 py-3 text-eps-red hover:bg-red-50"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="font-medium">Админ-панель</span>
               </Link>
             )}
 
             {/* Контакты */}
-            <div className="pt-4 mt-4 border-t border-gray-100">
+            <div className="pt-4 mt-4 border-t border-gray-100 px-4">
               <a
                 href="tel:88001013835"
                 className="flex items-center px-3 py-2 text-gray-600"
@@ -245,8 +266,8 @@ export default function Header() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        </SheetContent>
+      </Sheet>
     </header>
   );
 }

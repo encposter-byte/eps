@@ -74,18 +74,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Fetch cart data from API
   const fetchCart = async () => {
     if (!cartId) return;
-    
+
     setIsLoading(true);
     try {
       const response = await fetch(`/api/cart/${cartId}`);
       if (response.ok) {
         const data = await response.json();
-        setItems(data.items);
-        setItemCount(data.itemCount);
-        setSubtotal(data.subtotal);
+        setItems(data.items || []);
+        setItemCount(data.itemCount || 0);
+        setSubtotal(data.subtotal || 0);
+      } else {
+        // Reset to empty state if cart not found
+        setItems([]);
+        setItemCount(0);
+        setSubtotal(0);
       }
     } catch (error) {
       console.error("Failed to fetch cart", error);
+      // Reset to empty state on error
+      setItems([]);
+      setItemCount(0);
+      setSubtotal(0);
     } finally {
       setIsLoading(false);
     }
