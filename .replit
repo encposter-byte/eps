@@ -1,6 +1,12 @@
 run = "npm start"
 build = "npm run build"
 
+[nix]
+channel = "stable-24_05"
+
+[nix.pkgs]
+nodejs = "latest"
+
 [deployment]
-run = ["sh", "-c", "npm start"]
-build = ["sh", "-c", "npm run build"]
+run = ["npm", "start"]
+build = ["npm", "run", "build"]
