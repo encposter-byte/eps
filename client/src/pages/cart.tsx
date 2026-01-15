@@ -1,27 +1,32 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { 
-  Card, 
-  CardContent, 
+import {
+  Card,
+  CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  ShoppingCart, 
-  ArrowLeft, 
-  ShoppingBag, 
-  CreditCard, 
-  Truck, 
-  Shield 
+import {
+  ShoppingCart,
+  ArrowLeft,
+  ShoppingBag,
+  CreditCard,
+  Truck,
+  Shield,
+  LogIn,
+  Info
 } from "lucide-react";
 import { useCart } from "@/lib/cart";
+import { useAuth } from "@/hooks/use-auth";
 import { Separator } from "@/components/ui/separator";
 import CartItem from "@/components/cart/cart-item";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Cart() {
   const { items, subtotal, itemCount, clearCart, isLoading } = useCart();
+  const { user } = useAuth();
   const [isClearingCart, setIsClearingCart] = useState(false);
   
   const handleClearCart = async () => {
@@ -65,7 +70,23 @@ export default function Cart() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold text-eps-gradient mb-8">Корзина</h1>
-      
+
+      {/* Сообщение для неавторизованных пользователей */}
+      {!user && items && items.length > 0 && (
+        <Alert className="mb-6 border-blue-200 bg-blue-50">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800 flex items-center justify-between flex-wrap gap-2">
+            <span>Чтобы сохранить корзину и получить доступ к истории заказов, авторизуйтесь на сайте.</span>
+            <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100" asChild>
+              <Link href="/auth">
+                <LogIn className="h-4 w-4 mr-2" />
+                Войти
+              </Link>
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-2">

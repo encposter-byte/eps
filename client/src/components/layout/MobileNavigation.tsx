@@ -86,16 +86,14 @@ export default function MobileNavigation({ onCategoriesClick }: MobileNavigation
                 >
                   <div className="relative">
                     <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
-                    {item.badge !== undefined && (
-                      <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-primary text-primary-foreground text-[10px] sm:text-xs rounded-full h-3.5 sm:h-4 min-w-[14px] sm:min-w-[16px] flex items-center justify-center px-0.5 sm:px-1">
-                        {item.badge > 99 ? "99+" : item.badge}
-                      </span>
-                    )}
                   </div>
                   <span className="text-[10px] sm:text-xs mt-0.5 sm:mt-1">{item.label}</span>
                 </button>
               );
             }
+
+            // Добавляем data-cart-icon для анимации полёта товара в корзину
+            const isCartItem = item.label === "Корзина";
 
             return (
               <Link
@@ -106,6 +104,7 @@ export default function MobileNavigation({ onCategoriesClick }: MobileNavigation
                     ? "text-primary"
                     : "text-gray-600 hover:text-primary"
                 }`}
+                {...(isCartItem ? { "data-cart-icon": true } : {})}
               >
                 <div className="relative">
                   <Icon className="h-4 w-4 sm:h-5 sm:w-5" />

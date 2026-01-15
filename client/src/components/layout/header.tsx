@@ -82,13 +82,13 @@ export default function Header() {
               </div>
               <div className="flex items-center space-x-4">
                 {/* Корзина */}
-                <Link href="/cart" className="flex items-center text-gray-700 hover:text-eps-red relative group">
+                <Link href="/cart" className="flex items-center text-gray-700 hover:text-eps-red relative group" data-cart-icon>
                   <div className="relative">
                     <div className="p-2 bg-gray-100 rounded-full group-hover:bg-red-50 transition-colors">
                       <ShoppingCart className="h-5 w-5" />
                     </div>
                     {itemCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-eps-red text-white text-xs font-medium w-5 h-5 flex items-center justify-center rounded-full">
+                      <span className="absolute -top-1 -right-1 bg-eps-red text-white text-xs font-medium w-5 h-5 flex items-center justify-center rounded-full animate-pulse">
                         {itemCount}
                       </span>
                     )}
