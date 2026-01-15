@@ -8,7 +8,7 @@ import { z } from "zod";
 export const sessions = pgTable("sessions", {
   sid: varchar("sid").primaryKey(),
   sess: json("sess").notNull().$type<Record<string, unknown>>(),
-  expire: timestamp("expire", { precision: 6, withTimezone: true }).notNull(),
+  expire: timestamp("expire", { precision: 6 }).notNull(),
 });
 
 // User Schema
