@@ -8,6 +8,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { useCart } from '../lib/cart';
 import { useAuth } from '../hooks/use-auth';
 import { formatPrice } from '../lib/format';
+import ImageGallery from '../components/product/ImageGallery';
 
 interface Product {
   id: number;
@@ -27,6 +28,7 @@ interface Product {
     id: number;
     name: string;
   };
+  specifications?: Record<string, string>;
 }
 
 export default function ProductDetails() {
@@ -105,8 +107,8 @@ export default function ProductDetails() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h1>
           <p className="text-gray-600 mb-8">{error || 'The product you are looking for does not exist.'}</p>
-          <Link to="/products">
-            <Button>Back to Products</Button>
+          <Link to="/">
+            <Button>На главную</Button>
           </Link>
         </div>
       </div>
@@ -123,14 +125,6 @@ export default function ProductDetails() {
               <BreadcrumbLink asChild>
                 <Link to="/" className="transition-colors hover:text-foreground/80">
                   Главная
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/products" className="transition-colors hover:text-foreground/80">
-                  Товары
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
@@ -161,21 +155,16 @@ export default function ProductDetails() {
         {/* Product Content */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 md:p-8">
-            {/* Product Image */}
+            {/* Product Image Gallery */}
             <div className="space-y-4">
-              <div className="aspect-square bg-white rounded-xl border-2 border-gray-100 overflow-hidden group">
-                <img
-                  src={product.imageUrl || '/placeholder-product.svg'}
-                  alt={product.name}
-                  className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    e.currentTarget.src = '/placeholder-product.svg';
-                  }}
-                />
-              </div>
+              <ImageGallery
+                mainImage={product.imageUrl}
+                additionalImages={product.specifications?.['Картинки2']}
+                productName={product.name}
+              />
 
               {/* Product Features */}
-              <div className="grid grid-cols-3 gap-3 pt-4">
+              <div className="grid grid-cols-3 gap-3">
                 <div className="flex flex-col items-center p-3 bg-blue-50 rounded-lg">
                   <Truck className="h-5 w-5 text-blue-600 mb-1" />
                   <span className="text-xs text-blue-800 font-medium">Быстрая доставка</span>
@@ -303,12 +292,42 @@ export default function ProductDetails() {
             </div>
           </div>
 
-          {/* Additional Details */}
-          {product.description && (
+          {/* Specifications / Характеристики */}
+          {product.specifications && Object.keys(product.specifications).length > 0 && (
+            <div className="border-t border-gray-100 p-6 md:p-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Характеристики</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                {Object.entries(product.specifications)
+                  .filter(([key]) => !['Картинки2', 'Описание товара', 'Детальное описание товара2'].includes(key))
+                  .map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="flex justify-between py-2 border-b border-gray-100 last:border-b-0"
+                  >
+                    <span className="text-gray-600 text-sm">{key}</span>
+                    <span className="text-gray-900 font-medium text-sm text-right ml-4">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Описание товара - в конце */}
+          {(product.description || product.specifications?.['Описание товара']) && (
             <div className="border-t border-gray-100 p-6 md:p-8">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Описание товара</h3>
-              <div className="prose max-w-none text-gray-600">
-                <p>{product.description}</p>
+              <div className="prose max-w-none text-gray-600 whitespace-pre-line">
+                {product.specifications?.['Описание товара'] || product.description}
+              </div>
+            </div>
+          )}
+
+          {/* Детальное описание товара2 - в самом конце */}
+          {product.specifications?.['Детальное описание товара2'] && (
+            <div className="border-t border-gray-100 p-6 md:p-8">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Подробное описание</h3>
+              <div className="prose max-w-none text-gray-600 whitespace-pre-line">
+                {product.specifications['Детальное описание товара2']}
               </div>
             </div>
           )}

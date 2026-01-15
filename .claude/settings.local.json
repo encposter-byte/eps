@@ -14,7 +14,29 @@
       "Bash(timeout:*)",
       "Bash(npm install:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npx tsx:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm run db:push:*)",
+      "Bash(tasklist:*)",
+      "Bash(curl:*)",
+      "Bash(ping:*)",
+      "Bash(git checkout:*)",
+      "Bash(dir /b \"c:\\\\Proekti\\\\EPS\\\\attached_assets\")",
+      "Bash(npx dotenv:*)",
+      "Bash(powershell -Command \"Stop-Process -Id 3800240 -Force\")",
+      "Bash(powershell -Command \"Start-Sleep -Seconds 5; Get-Content ''C:\\\\Users\\\\GAME2\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Proekti-EPS\\\\tasks\\\\b459586.output''\")",
+      "Bash(npx drizzle-kit:*)",
+      "Bash(node -e:*)",
+      "Bash(powershell -Command \"Stop-Process -Id 3844328 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 3804320 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 3894248 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 3898236 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 3902716 -Force\")",
+      "Bash(powershell -Command:*)"
     ]
   }
 }

@@ -98,24 +98,24 @@ export default function MobileNavigation({ onCategoriesClick }: MobileNavigation
             }
 
             return (
-              <Link key={index} href={item.href!}>
-                <a
-                  className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
-                    item.active
-                      ? "text-primary"
-                      : "text-gray-600 hover:text-primary"
-                  }`}
-                >
-                  <div className="relative">
-                    <Icon className="h-5 w-5" />
-                    {item.badge !== undefined && (
-                      <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-4 min-w-[16px] flex items-center justify-center px-1">
-                        {item.badge > 99 ? "99+" : item.badge}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs mt-1">{item.label}</span>
-                </a>
+              <Link
+                key={index}
+                href={item.href!}
+                className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+                  item.active
+                    ? "text-primary"
+                    : "text-gray-600 hover:text-primary"
+                }`}
+              >
+                <div className="relative">
+                  <Icon className="h-5 w-5" />
+                  {item.badge !== undefined && (
+                    <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-4 min-w-[16px] flex items-center justify-center px-1">
+                      {item.badge > 99 ? "99+" : item.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs mt-1">{item.label}</span>
               </Link>
             );
           })}

@@ -3,6 +3,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cors from "cors";
+import path from "path";
+import { storage } from "./storage";
 
 const app = express();
 
@@ -24,6 +26,12 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Раздача изображений DCK из папки attached_assets
+app.use('/attached_assets', express.static(path.join(process.cwd(), 'attached_assets'), {
+  maxAge: '1d',
+  etag: true
+}));
 
 // Отключение кеширования для всех ответов - усиленная версия
 app.use((req, res, next) => {
@@ -97,7 +105,24 @@ app.use((req, res, next) => {
 
   // Serve the app on configured port (default 5000)
   const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen(port, () => {
+  server.listen(port, async () => {
     log(`serving on port ${port}`);
+
+    // Прогрев соединения с БД и предзагрузка часто используемых данных
+    try {
+      log('Warming up database connection...');
+      const startTime = Date.now();
+
+      // Параллельно загружаем категории и первую страницу товаров
+      await Promise.all([
+        storage.getCategoriesWithFirstImage(),
+        storage.searchProducts({ page: 1, limit: 24 }),
+        storage.getAllCategories()
+      ]);
+
+      log(`Database warmed up in ${Date.now() - startTime}ms`);
+    } catch (error) {
+      log('Warning: Failed to warm up database: ' + error);
+    }
   });
 })();

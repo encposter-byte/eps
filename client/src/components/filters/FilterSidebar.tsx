@@ -34,6 +34,7 @@ const SUPPLIERS = [
   { id: "DCK", name: "DCK" },
   { id: "TSS", name: "TSS" },
   { id: "HUGONGWELD", name: "HUGONG WELD" },
+  { id: "MITSUDIESEL", name: "Mitsudiesel" },
 ];
 
 const DEFAULT_MAX_PRICE = 500000;

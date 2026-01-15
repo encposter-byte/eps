@@ -10,11 +10,13 @@ import { Product } from "@shared/schema";
 interface ProductListProps {
   query?: string;
   categoryId?: number;
+  categoryName?: string;
   limit?: number;
   supplier?: string;
+  showHeader?: boolean;
 }
 
-export default function ProductList({ query, categoryId, limit = 12, supplier }: ProductListProps) {
+export default function ProductList({ query, categoryId, categoryName, limit = 12, supplier, showHeader = true }: ProductListProps) {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<string>("featured");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -62,61 +64,70 @@ export default function ProductList({ query, categoryId, limit = 12, supplier }:
     }
   };
 
+  // Определяем заголовок
+  const getTitle = () => {
+    if (query) return `Результаты поиска: "${query}"`;
+    if (categoryName) return categoryName;
+    return "Все товары";
+  };
+
   return (
     <div>
       {/* Header Section with Beautiful Gradient Background */}
-      <div className="bg-gradient-to-r from-eps-red via-red-600 to-red-700 rounded-2xl p-8 mb-8 shadow-lg">
-        <div className="flex flex-col md:flex-row justify-between items-start">
-          <div className="text-white">
-            <h2 className="text-3xl font-bold mb-2">
-              {query ? `Результаты поиска: "${query}"` : "Все товары"}
-            </h2>
-            <p className="text-red-100 text-lg">
-              {isLoading ? "Загрузка товаров..." : 
-               `Найдено ${data?.total || 0} ${data?.total === 1 ? 'товар' : 
-                 (data?.total && data.total >= 2 && data.total <= 4) ? 'товара' : 'товаров'}`}
-            </p>
-          </div>
-
-          <div className="w-full md:w-auto mt-4 md:mt-0 flex items-center space-x-4">
-            {/* Sort Options */}
-            <div className="relative w-full md:w-auto">
-              <Select value={sort} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-full md:w-[180px] bg-white/20 border-white/30 text-white backdrop-blur-sm hover:bg-white/30">
-                  <SelectValue placeholder="Сортировка" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="featured">Рекомендуемые</SelectItem>
-                  <SelectItem value="price-low">Цена: по возрастанию</SelectItem>
-                  <SelectItem value="price-high">Цена: по убыванию</SelectItem>
-                  <SelectItem value="newest">Новинки</SelectItem>
-                  <SelectItem value="popular">Популярные</SelectItem>
-                </SelectContent>
-              </Select>
+      {showHeader && (
+        <div className="bg-gradient-to-r from-eps-red via-red-600 to-red-700 rounded-2xl p-8 mb-8 shadow-lg">
+          <div className="flex flex-col md:flex-row justify-between items-start">
+            <div className="text-white">
+              <h2 className="text-3xl font-bold mb-2">
+                {getTitle()}
+              </h2>
+              <p className="text-red-100 text-lg">
+                {isLoading ? "Загрузка товаров..." :
+                 `Найдено ${data?.total || 0} ${data?.total === 1 ? 'товар' :
+                   (data?.total && data.total >= 2 && data.total <= 4) ? 'товара' : 'товаров'}`}
+              </p>
             </div>
 
-            {/* Toggle Grid/List View */}
-            <div className="flex border border-white/30 rounded-lg overflow-hidden backdrop-blur-sm">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="icon"
-                className={viewMode === "grid" ? "bg-white/20 text-white border-r border-white/30 hover:bg-white/30" : "bg-white/10 text-white border-r border-white/30 hover:bg-white/20"}
-                onClick={() => setViewMode("grid")}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="icon"
-                className={viewMode === "list" ? "bg-white/20 text-white hover:bg-white/30" : "bg-white/10 text-white hover:bg-white/20"}
-                onClick={() => setViewMode("list")}
-              >
-                <List className="h-4 w-4" />
-              </Button>
+            <div className="w-full md:w-auto mt-4 md:mt-0 flex items-center space-x-4">
+              {/* Sort Options */}
+              <div className="relative w-full md:w-auto">
+                <Select value={sort} onValueChange={handleSortChange}>
+                  <SelectTrigger className="w-full md:w-[180px] bg-white/20 border-white/30 text-white backdrop-blur-sm hover:bg-white/30">
+                    <SelectValue placeholder="Сортировка" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="featured">Рекомендуемые</SelectItem>
+                    <SelectItem value="price-low">Цена: по возрастанию</SelectItem>
+                    <SelectItem value="price-high">Цена: по убыванию</SelectItem>
+                    <SelectItem value="newest">Новинки</SelectItem>
+                    <SelectItem value="popular">Популярные</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Toggle Grid/List View */}
+              <div className="flex border border-white/30 rounded-lg overflow-hidden backdrop-blur-sm">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "ghost"}
+                  size="icon"
+                  className={viewMode === "grid" ? "bg-white/20 text-white border-r border-white/30 hover:bg-white/30" : "bg-white/10 text-white border-r border-white/30 hover:bg-white/20"}
+                  onClick={() => setViewMode("grid")}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  size="icon"
+                  className={viewMode === "list" ? "bg-white/20 text-white hover:bg-white/30" : "bg-white/10 text-white hover:bg-white/20"}
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {isLoading ? (
         // Loading skeleton

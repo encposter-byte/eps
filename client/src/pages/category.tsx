@@ -47,14 +47,8 @@ export default function CategoryPage() {
         </BreadcrumbItem>
       </Breadcrumb>
       
-      {/* Hero Section */}
-      <div className="bg-gray-100 rounded-lg p-8 mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{category?.name || 'Category'}</h1>
-        <p className="text-gray-600">{category?.description || 'Browse our selection of high-quality tools'}</p>
-      </div>
-      
-      {/* Products */}
-      {category && <ProductList categoryId={category.id} />}
+      {/* Products - заголовок уже в ProductList */}
+      {category && <ProductList categoryId={category.id} categoryName={category.name} />}
     </div>
   );
 }

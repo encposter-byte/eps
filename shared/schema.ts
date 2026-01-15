@@ -74,6 +74,7 @@ export const products = pgTable("products", {
   isActive: boolean("is_active").default(true),
   isFeatured: boolean("is_featured").default(false),
   tag: text("tag"),
+  specifications: jsonb("specifications"), // Характеристики товара в формате JSON
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -91,6 +92,7 @@ export const insertProductSchema = createInsertSchema(products).pick({
   isActive: true,
   isFeatured: true,
   tag: true,
+  specifications: true,
 });
 
 // CartItems Schema
@@ -139,6 +141,7 @@ export const productInputSchema = z.object({
   isActive: z.union([z.boolean(), z.string().transform(val => val === "true")]).pipe(z.boolean()).default(true),
   isFeatured: z.union([z.boolean(), z.string().transform(val => val === "true")]).pipe(z.boolean()).default(false),
   tag: z.string().optional().nullable(),
+  specifications: z.record(z.string()).optional().nullable(),
 });
 
 export type ProductInput = z.infer<typeof productInputSchema>;

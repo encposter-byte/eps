@@ -10,10 +10,51 @@ import {
   wishlistItems, InsertWishlistItem, WishlistItem, CategoryWithImage
 } from "@shared/schema";
 import { z } from "zod";
-import { and, eq, like, between, desc, asc, sql, isNull, gte, lte, or, not, ilike } from "drizzle-orm";
+import { and, eq, like, between, desc, asc, sql, isNull, isNotNull, gte, lte, or, not, ilike } from "drizzle-orm";
 import * as crypto from "crypto";
 
 const PostgresSessionStore = connectPg(session);
+
+// Простой in-memory кеш для тяжёлых запросов
+interface CacheEntry<T> {
+  data: T;
+  expiry: number;
+}
+
+class SimpleCache {
+  private cache = new Map<string, CacheEntry<any>>();
+
+  get<T>(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiry) {
+      this.cache.delete(key);
+      return null;
+    }
+    return entry.data;
+  }
+
+  set<T>(key: string, data: T, ttlMs: number): void {
+    this.cache.set(key, {
+      data,
+      expiry: Date.now() + ttlMs
+    });
+  }
+
+  invalidate(pattern?: string): void {
+    if (!pattern) {
+      this.cache.clear();
+    } else {
+      for (const key of this.cache.keys()) {
+        if (key.includes(pattern)) {
+          this.cache.delete(key);
+        }
+      }
+    }
+  }
+}
+
+const cache = new SimpleCache();
 
 export interface IStorage {
   // Session Store
@@ -367,7 +408,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProductBySlug(slug: string): Promise<Product | undefined> {
-    const result = await db.select().from(products).where(eq(products.slug, slug));
+    // Ищем без учёта регистра (ilike) для поддержки кириллицы в разных регистрах
+    const result = await db.select().from(products).where(ilike(products.slug, slug));
     return result.length > 0 ? result[0] : undefined;
   }
 
@@ -483,6 +525,7 @@ export class DatabaseStorage implements IStorage {
       isActive: productInput.isActive ?? true,
       isFeatured: productInput.isFeatured ?? false,
       tag: productInput.tag || null,
+      specifications: productInput.specifications || null,
     };
 
     const result = await db.insert(products).values(insertProduct).returning();
@@ -1038,60 +1081,60 @@ export class DatabaseStorage implements IStorage {
 
   // Оптимизированный метод для получения категорий с изображением первого товара
   async getCategoriesWithFirstImage(supplier?: string): Promise<CategoryWithImage[]> {
-    // Получаем все категории
-    const allCategories = await db.select().from(categories).orderBy(categories.name);
+    const cacheKey = `categories-with-images:${supplier || 'all'}`;
 
-    // Условия для подсчета товаров
-    const conditions = [eq(products.isActive, true)];
-    if (supplier) {
-      conditions.push(eq(products.tag, supplier));
+    // Проверяем кеш (TTL 2 минуты)
+    const cached = cache.get<CategoryWithImage[]>(cacheKey);
+    if (cached) {
+      return cached;
     }
 
-    // Получаем счетчики товаров
-    const productCounts = await db
-      .select({
-        categoryId: products.categoryId,
-        count: sql<number>`count(*)`.as('count')
-      })
-      .from(products)
-      .where(and(...conditions))
-      .groupBy(products.categoryId);
+    try {
+      // Один SQL запрос с агрегацией вместо загрузки всех товаров
+      const supplierCondition = supplier ? `AND p.tag ILIKE '%${supplier}%'` : '';
 
-    // Получаем первое изображение для каждой категории (через MIN по id)
-    const firstImages = await db
-      .select({
-        categoryId: products.categoryId,
-        imageUrl: sql<string>`MIN(${products.imageUrl})`.as('image_url')
-      })
-      .from(products)
-      .where(and(...conditions, sql`${products.imageUrl} IS NOT NULL AND ${products.imageUrl} != ''`))
-      .groupBy(products.categoryId);
+      const result = await db.execute(sql.raw(`
+        SELECT
+          c.id,
+          c.name,
+          c.slug,
+          c.description,
+          c.icon,
+          COALESCE(stats.product_count, 0)::int as product_count,
+          stats.first_image as image_url
+        FROM categories c
+        LEFT JOIN (
+          SELECT
+            category_id,
+            COUNT(*)::int as product_count,
+            MIN(image_url) as first_image
+          FROM products p
+          WHERE p.is_active = true AND p.image_url IS NOT NULL
+          ${supplierCondition}
+          GROUP BY category_id
+        ) stats ON c.id = stats.category_id
+        WHERE COALESCE(stats.product_count, 0) > 0
+        ORDER BY c.name
+      `));
 
-    // Создаем Map для быстрого поиска счетчиков
-    const countMap = new Map(
-      productCounts.map(pc => [pc.categoryId, Number(pc.count)])
-    );
+      const categories = (result.rows as any[]).map(row => ({
+        id: row.id,
+        name: row.name,
+        slug: row.slug,
+        description: row.description,
+        icon: row.icon,
+        productCount: row.product_count,
+        imageUrl: row.image_url
+      }));
 
-    // Создаем Map для быстрого поиска изображений
-    const imageMap = new Map(
-      firstImages.map(fi => [fi.categoryId, fi.imageUrl])
-    );
+      // Кешируем на 2 минуты
+      cache.set(cacheKey, categories, 2 * 60 * 1000);
 
-    // Объединяем данные и фильтруем категории с товарами
-    return allCategories
-      .map(category => {
-        const count = countMap.get(category.id) || 0;
-        return {
-          id: category.id,
-          name: category.name,
-          slug: category.slug,
-          description: category.description,
-          icon: category.icon,
-          productCount: count,
-          imageUrl: imageMap.get(category.id) || null
-        };
-      })
-      .filter(category => category.productCount > 0);
+      return categories;
+    } catch (error) {
+      console.error("Error in getCategoriesWithFirstImage:", error);
+      throw error;
+    }
   }
 
   // Wishlist operations

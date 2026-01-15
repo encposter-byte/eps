@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -6,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { SlidersHorizontal, ArrowUpDown, Search, X } from "lucide-react";
 
 export type SortOption = "featured" | "price_asc" | "price_desc" | "name_asc" | "name_desc";
 
@@ -17,13 +19,16 @@ interface QuickFiltersProps {
   onSortChange: (sort: SortOption) => void;
   onOpenFilters?: () => void;
   totalProducts?: number;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 const SUPPLIERS = [
-  { id: null, name: "Все поставщики" },
+  { id: null, name: "Все бренды" },
   { id: "DCK", name: "DCK" },
   { id: "TSS", name: "TSS" },
   { id: "HUGONGWELD", name: "HUGONG WELD" },
+  { id: "MITSUDIESEL", name: "Mitsudiesel" },
 ];
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
@@ -41,7 +46,26 @@ export default function QuickFilters({
   onSortChange,
   onOpenFilters,
   totalProducts,
+  searchQuery = "",
+  onSearchChange,
 }: QuickFiltersProps) {
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+
+  // Sync local search with external searchQuery
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSearchChange?.(localSearch);
+  };
+
+  const handleClearSearch = () => {
+    setLocalSearch("");
+    onSearchChange?.("");
+  };
+
   return (
     <div className="bg-white border-b">
       <div className="container mx-auto px-4 py-3">
@@ -105,6 +129,36 @@ export default function QuickFilters({
             )}
           </div>
         </div>
+
+        {/* Search Bar - под фильтрами поставщиков */}
+        {onSearchChange && (
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <form onSubmit={handleSearchSubmit} className="flex gap-2">
+              <div className="relative flex-1 max-w-xl">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Поиск товаров..."
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
+                  className="pl-10 pr-10 h-10"
+                />
+                {localSearch && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <Button type="submit" className="h-10 px-6">
+                Найти
+              </Button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );

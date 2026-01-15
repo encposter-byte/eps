@@ -3,29 +3,19 @@ import { Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/lib/cart";
 import { useAuth } from "@/hooks/use-auth";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, User, ShoppingCart, Menu, X, Package, Building, MapPin, LogIn, LogOut, ChevronDown } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { User, ShoppingCart, Menu, X, Package, LogIn, LogOut, Phone, Clock } from "lucide-react";
 import { Category } from "@shared/schema";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator
-} from "@/components/ui/dropdown-menu";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [location, navigate] = useLocation();
 
   const { itemCount } = useCart();
   const { user, logoutMutation } = useAuth();
 
   // Fetch categories
-  const { data: categories = [] } = useQuery<Category[]>({ 
+  const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"]
   });
 
@@ -33,14 +23,6 @@ export default function Header() {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
-
-  // Handle search form submission
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/?query=${encodeURIComponent(searchQuery)}`);
-    }
-  };
 
   // Toggle mobile menu
   const toggleMobileMenu = () => {
@@ -58,130 +40,100 @@ export default function Header() {
 
   return (
     <header className="bg-white z-30 shadow-sm border-b border-red-100">
-      {/* Top bar с контактами */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 py-2 text-xs text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between">
-            <div className="flex items-center">
-              <span className="inline-block hover:text-eps-yellow transition-colors">
-                Телефон: 8 800 101 38 35
-              </span>
-            </div>
-            <div className="hidden md:flex items-center space-x-6">
-              <span className="hover:text-eps-yellow transition-colors">пн–пт 8:00–18:00, сб, вс — выходные</span>
-            </div>
-            <div className="md:hidden">
-              <span className="hover:text-eps-yellow transition-colors">пн–пт 8:00–18:00</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Основная часть шапки с логотипом и поиском */}
-      <div className="relative bg-white md:static">
+      {/* Основная шапка: Телефон | График | Логотип (центр) | Корзина | Вход */}
+      <div className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-20 items-center justify-between">
-            {/* Логотип с эффектами */}
-            <div className="flex-shrink-0">
-              <Link href="/" className="flex items-center group">
-                <div className="relative">
-                  <span className="text-3xl font-extrabold text-eps-red">
-                    ЭПС
-                  </span>
-                  <span className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-eps-red group-hover:w-full transition-all duration-300"></span>
-                </div>
-                {/* Убираем "Инструменты", оставляем только ЭПС */}
-              </Link>
-            </div>
-
-            <div className="hidden md:flex md:flex-1 md:justify-end">
-              <div className="flex items-center space-x-6">
-
-                {/* Форма поиска с эффектами */}
-                <form onSubmit={handleSearch} className="hidden lg:block w-96">
-                  <div className="relative">
-                    <Input 
-                      type="text"
-                      placeholder="Поиск товаров..."
-                      className="pr-10 border-red-200 focus:border-eps-red focus:ring-eps-red"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <Button 
-                      type="submit" 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 hover:text-eps-red transition-colors"
-                    >
-                      <Search className="h-4 w-4" />
-                    </Button>
+            {/* Левая часть: Телефон и график (только десктоп) */}
+            <div className="hidden md:flex items-center space-x-4 flex-1">
+              <a href="tel:88001013835" className="flex items-center text-gray-700 hover:text-eps-red group">
+                <div className="flex items-center">
+                  <div className="p-2 bg-gray-100 rounded-full group-hover:bg-red-50 transition-colors duration-300">
+                    <Phone className="h-5 w-5" />
                   </div>
-                </form>
-
-                {/* Кнопки корзины, профиля и авторизации с улучшенным дизайном */}
-                <div className="flex items-center space-x-6">
-                  {/* Корзина (для всех пользователей) */}
-                  <Link href="/cart" className="flex items-center text-gray-700 hover:text-eps-red relative group">
-                    <div className="flex items-center">
-                      <div className="relative">
-                        <div className="p-2 bg-gray-100 rounded-full group-hover:bg-red-50 transition-colors duration-300">
-                          <ShoppingCart className="h-5 w-5" />
-                        </div>
-                        {itemCount > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-eps-red text-white text-xs font-medium w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
-                            {itemCount}
-                          </span>
-                        )}
-                      </div>
-                      <span className="ml-2 font-medium text-sm hidden sm:block">Корзина</span>
-                    </div>
-                  </Link>
-
-                  {user ? (
-                    // Для авторизованных пользователей - Профиль и выход
-                    <>
-                      <Link href="/profile" className="flex items-center text-gray-700 hover:text-orange-600 group">
-                        <div className="flex items-center">
-                          <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
-                            <User className="h-5 w-5" />
-                          </div>
-                          <span className="ml-2 font-medium text-sm hidden sm:block">Профиль</span>
-                        </div>
-                      </Link>
-
-                      <button 
-                        onClick={handleLogout}
-                        className="flex items-center text-gray-700 hover:text-orange-600 group"
-                        disabled={logoutMutation.isPending}
-                      >
-                        <div className="flex items-center">
-                          <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
-                            <LogOut className="h-5 w-5" />
-                          </div>
-                          <span className="ml-2 font-medium text-sm hidden sm:block">
-                            {logoutMutation.isPending ? "Выход..." : "Выйти"}
-                          </span>
-                        </div>
-                      </button>
-                    </>
-                  ) : (
-                    // Для неавторизованных пользователей - только кнопка Войти
-                    <Link href="/auth" className="flex items-center text-gray-700 hover:text-orange-600 group">
-                      <div className="flex items-center">
-                        <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
-                          <LogIn className="h-5 w-5" />
-                        </div>
-                        <span className="ml-2 font-medium text-sm hidden sm:block">Войти</span>
-                      </div>
-                    </Link>
-                  )}
+                  <span className="ml-2 font-medium text-sm">8 800 101 38 35</span>
+                </div>
+              </a>
+              <div className="flex items-center text-gray-700 group">
+                <div className="flex items-center">
+                  <div className="p-2 bg-gray-100 rounded-full transition-colors duration-300">
+                    <Clock className="h-5 w-5" />
+                  </div>
+                  <span className="ml-2 font-medium text-sm">пн–пт 8:00–18:00</span>
                 </div>
               </div>
             </div>
 
-            {/* Мобильные элементы интерфейса */}
+            {/* Центр: Логотип */}
+            <div className="flex-shrink-0">
+              <Link href="/" className="flex items-center group">
+                <img
+                  src="/logo.png"
+                  alt="ЭПС"
+                  className="h-14 w-auto transition-transform duration-300 group-hover:scale-105"
+                />
+              </Link>
+            </div>
+
+            {/* Правая часть: Корзина и авторизация (только десктоп) */}
+            <div className="hidden md:flex items-center justify-end space-x-6 flex-1">
+              {/* Корзина */}
+              <Link href="/cart" className="flex items-center text-gray-700 hover:text-eps-red relative group">
+                <div className="flex items-center">
+                  <div className="relative">
+                    <div className="p-2 bg-gray-100 rounded-full group-hover:bg-red-50 transition-colors duration-300">
+                      <ShoppingCart className="h-5 w-5" />
+                    </div>
+                    {itemCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-eps-red text-white text-xs font-medium w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
+                        {itemCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="ml-2 font-medium text-sm">Корзина</span>
+                </div>
+              </Link>
+
+              {user ? (
+                <>
+                  <Link href="/profile" className="flex items-center text-gray-700 hover:text-orange-600 group">
+                    <div className="flex items-center">
+                      <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <span className="ml-2 font-medium text-sm">Профиль</span>
+                    </div>
+                  </Link>
+
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center text-gray-700 hover:text-orange-600 group"
+                    disabled={logoutMutation.isPending}
+                  >
+                    <div className="flex items-center">
+                      <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
+                        <LogOut className="h-5 w-5" />
+                      </div>
+                      <span className="ml-2 font-medium text-sm">
+                        {logoutMutation.isPending ? "Выход..." : "Выйти"}
+                      </span>
+                    </div>
+                  </button>
+                </>
+              ) : (
+                <Link href="/auth" className="flex items-center text-gray-700 hover:text-orange-600 group">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-gray-100 rounded-full group-hover:bg-orange-50 transition-colors duration-300">
+                      <LogIn className="h-5 w-5" />
+                    </div>
+                    <span className="ml-2 font-medium text-sm">Войти</span>
+                  </div>
+                </Link>
+              )}
+            </div>
+
+            {/* Мобильные элементы */}
             <div className="flex items-center space-x-4 md:hidden">
-              {/* Мобильная корзина */}
               <Link href="/cart" className="text-gray-700 relative">
                 <ShoppingCart className="h-6 w-6" />
                 {itemCount > 0 && (
@@ -191,9 +143,8 @@ export default function Header() {
                 )}
               </Link>
 
-              {/* Мобильная кнопка меню */}
               <Button
-                variant="ghost" 
+                variant="ghost"
                 size="icon"
                 className="text-gray-700 hover:text-eps-red hover:bg-gray-100"
                 onClick={toggleMobileMenu}
@@ -205,111 +156,12 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Навигационное меню с современным дизайном */}
-      <nav className="bg-gradient-to-r from-eps-red via-red-600 to-red-700 text-white shadow-lg border-b border-red-800/20 hidden md:block relative overflow-hidden">
-        {/* Декоративные элементы */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="flex h-14 items-center">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center space-x-1 flex-1 justify-evenly">
-                {/* Главная */}
-                <Link href="/" className="group relative flex items-center px-4 py-3 text-white font-medium text-sm tracking-wide transition-all duration-300 hover:bg-white/15 rounded-lg hover:shadow-lg hover:scale-105">
-                  <span className="relative z-10">Главная</span>
-                  <div className="absolute inset-0 bg-white/10 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 origin-center"></div>
-                </Link>
-
-                {/* Выпадающий список категорий с улучшенным дизайном */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="group relative flex items-center px-4 py-3 text-white font-medium text-sm tracking-wide transition-all duration-300 hover:bg-white/15 rounded-lg hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/30">
-                      <span className="relative z-10">Товары</span>
-                      <ChevronDown className="h-4 w-4 ml-2 opacity-75 transition-transform duration-300 group-data-[state=open]:rotate-180" />
-                      <div className="absolute inset-0 bg-white/10 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 origin-center"></div>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-white/95 backdrop-blur-md p-3 shadow-2xl rounded-xl border border-red-100/50 min-w-[220px] mt-2 max-h-[400px]">
-                    <ScrollArea className="h-full max-h-[350px]">
-                      <div className="space-y-1">
-                        {categories.map((category) => (
-                          <DropdownMenuItem key={category.id} asChild className="rounded-lg hover:bg-red-50 focus:bg-red-50 transition-colors duration-200">
-                            <Link href={`/category/${category.slug}`} className="flex items-center w-full p-3 text-gray-700 hover:text-red-600 font-medium transition-colors duration-200">
-                              <Package className="h-4 w-4 mr-3 opacity-60" />
-                              {category.name}
-                            </Link>
-                          </DropdownMenuItem>
-                        ))}
-                        <DropdownMenuSeparator className="bg-red-100 my-2" />
-                        <DropdownMenuItem asChild className="rounded-lg hover:bg-red-50 focus:bg-red-50 transition-colors duration-200">
-                          <Link href="/products" className="flex items-center w-full p-3 text-gray-700 hover:text-red-600 font-bold transition-colors duration-200">
-                            <svg className="h-4 w-4 mr-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                            Все товары
-                          </Link>
-                        </DropdownMenuItem>
-                      </div>
-                    </ScrollArea>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* Контакты */}
-                <Link href="/contacts" className="group relative flex items-center px-4 py-3 text-white font-medium text-sm tracking-wide transition-all duration-300 hover:bg-white/15 rounded-lg hover:shadow-lg hover:scale-105">
-                  <span className="relative z-10">Контакты</span>
-                  <div className="absolute inset-0 bg-white/10 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 origin-center"></div>
-                </Link>
-
-                {/* О компании */}
-                <Link href="/about" className="group relative flex items-center px-4 py-3 text-white font-medium text-sm tracking-wide transition-all duration-300 hover:bg-white/15 rounded-lg hover:shadow-lg hover:scale-105">
-                  <span className="relative z-10">О компании</span>
-                  <div className="absolute inset-0 bg-white/10 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 origin-center"></div>
-                </Link>
-              </div>
-
-              {/* Админ-панель с особым стилем */}
-              {user?.role === 'admin' && (
-                <Link href="/admin" className="group relative flex items-center px-4 py-3 text-yellow-200 font-medium text-sm tracking-wide transition-all duration-300 hover:bg-yellow-400/20 rounded-lg hover:shadow-lg hover:scale-105 border border-yellow-400/30">
-                  <span className="relative z-10">Админ-панель</span>
-                  <div className="absolute inset-0 bg-yellow-400/10 rounded-lg scale-0 group-hover:scale-100 transition-transform duration-300 origin-center"></div>
-                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full shadow-lg"></div>
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Нижняя декоративная линия */}
-        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
-      </nav>
 
       {/* Мобильное меню с обновленным дизайном */}
       <div 
         className={`md:hidden ${mobileMenuOpen ? 'block' : 'hidden'} bg-white fixed top-0 w-full shadow-lg z-40 border-t border-orange-100 max-h-screen overflow-y-auto pb-20`}
       >
         <div className="px-2 pt-4 pb-6">
-          {/* Поиск в мобильном меню */}
-          <form onSubmit={handleSearch} className="mb-5 px-2">
-            <div className="relative">
-              <Input 
-                type="text"
-                placeholder="Поиск товаров..."
-                className="pr-10 border-orange-200 focus:border-orange-400 focus:ring-orange-400"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Button 
-                type="submit" 
-                variant="ghost" 
-                size="icon" 
-                className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-          </form>
-
           {/* Профиль в мобильном меню */}
           {user ? (
             <div className="flex items-center justify-between mb-4 px-3 py-3 bg-gray-50 rounded-lg">
@@ -351,16 +203,16 @@ export default function Header() {
               <p className="text-base font-medium text-gray-700">Товары:</p>
               <div className="mt-1.5 pl-4 space-y-1.5">
                 {categories.map((category) => (
-                  <Link 
-                    key={category.id} 
-                    href={`/category/${category.slug}`}
+                  <Link
+                    key={category.id}
+                    href={`/?category=${category.slug}`}
                     className="block py-1.5 text-gray-600 hover:text-orange-600 transition-colors"
                   >
                     {category.name}
                   </Link>
                 ))}
-                <Link 
-                  href="/products"
+                <Link
+                  href="/"
                   className="block py-1.5 text-gray-700 font-medium hover:text-orange-600 transition-colors"
                 >
                   Все товары
@@ -411,11 +263,11 @@ export default function Header() {
             <span className="text-xs mt-1">Главная</span>
           </Link>
 
-          <Link href="/products" className="flex flex-col items-center p-2 text-gray-600 hover:text-eps-red transition-colors">
+          <Link href="/" className="flex flex-col items-center p-2 text-gray-600 hover:text-eps-red transition-colors">
             <div className="p-1.5 rounded-full bg-gray-50">
               <Package className="w-5 h-5" />
             </div>
-            <span className="text-xs mt-1">Товары</span>
+            <span className="text-xs mt-1">Каталог</span>
           </Link>
 
           <Link href="/cart" className="flex flex-col items-center p-2 text-gray-600 hover:text-eps-red transition-colors">

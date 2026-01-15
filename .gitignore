@@ -7,3 +7,26 @@ vite.config.ts.*
 .env
 .env.local
 .env.*.local
+
+# CSV data files (large, not needed in repo)
+*.csv
+
+# One-time import/migration scripts
+import-*.ts
+delete-*.ts
+fix-*.ts
+merge-*.ts
+add-indexes.ts
+analyze-*.ts
+create-new-categories.ts
+
+# Windows artifacts
+nul
+NUL
+
+# Local settings
+.local/
+settings.local.json
+
+# Temp images
+*_improved.png

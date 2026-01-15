@@ -208,11 +208,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   router.get("/categories", async (req, res) => {
     try {
       const supplier = req.query.supplier as string | undefined;
-      const categories = supplier 
+      const categories = supplier
         ? await storage.getCategoriesBySupplier(supplier)
         : await storage.getAllCategories();
       res.json(categories);
     } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ВАЖНО: этот маршрут должен быть ДО /categories/:id чтобы не перехватывался
+  router.get("/categories/with-images", async (req, res) => {
+    try {
+      const supplier = req.query.supplier as string | undefined;
+      const categories = await storage.getCategoriesWithFirstImage(supplier);
+      res.json(categories);
+    } catch (error: any) {
+      console.error("Error in /api/categories/with-images:", error);
       res.status(500).json({ message: error.message });
     }
   });
@@ -264,17 +276,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Категория удалена" });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
-    }
-  });
-
-  // Оптимизированный endpoint для категорий с изображениями
-  router.get("/categories/with-images", async (req, res) => {
-    try {
-      const supplier = req.query.supplier as string | undefined;
-      const categories = await storage.getCategoriesWithFirstImage(supplier);
-      res.json(categories);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
     }
   });
 
@@ -340,10 +341,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Product Routes
   router.get("/products", async (req, res) => {
     try {
+      // Если передан categorySlug, получаем categoryId
+      let categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined;
+
+      if (!categoryId && req.query.categorySlug) {
+        console.log(`[products] categorySlug: "${req.query.categorySlug}"`);
+        const category = await storage.getCategoryBySlug(req.query.categorySlug as string);
+        console.log(`[products] found category:`, category?.id || 'null');
+        if (category) {
+          categoryId = category.id;
+        }
+      }
+
       // Прямая обработка параметров без Zod
       const params: any = {
         query: req.query.query as string | undefined,
-        categoryId: req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined,
+        categoryId,
         supplier: req.query.supplier as string | undefined,
         minPrice: req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined,
         maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined,

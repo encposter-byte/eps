@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useSearch, useLocation } from "wouter";
 import { Helmet } from "react-helmet";
 import CategoryStrip from "@/components/category/CategoryStrip";
 import FilterSidebar, { FilterState } from "@/components/filters/FilterSidebar";
@@ -37,17 +37,37 @@ interface ProductsResponse {
 }
 
 export default function Home() {
-  const [location] = useLocation();
-  const queryParams = new URLSearchParams(location.split("?")[1] || "");
-  const searchQuery = queryParams.get("query") || "";
+  // Use useSearch hook to properly track query string changes
+  const searchString = useSearch();
+  const [, setLocation] = useLocation();
+
+  // Parse URL params
+  const { searchQuery, urlCategory } = useMemo(() => {
+    const params = new URLSearchParams(searchString);
+    return {
+      searchQuery: params.get("query") || "",
+      urlCategory: params.get("category") || undefined,
+    };
+  }, [searchString]);
 
   // States
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(urlCategory);
   const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null);
   const [sort, setSort] = useState<SortOption>("featured");
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Sync category from URL
+  useEffect(() => {
+    setSelectedCategory(urlCategory);
+    setPage(1);
+  }, [urlCategory]);
+
+  // Reset page when search query changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
 
   // Build query params for products API
   const buildProductParams = useCallback(() => {
@@ -89,6 +109,7 @@ export default function Home() {
 
       if (searchQuery) params.append("query", searchQuery);
       if (selectedSupplier) params.append("supplier", selectedSupplier);
+      if (selectedCategory) params.append("categorySlug", selectedCategory);
       if (filters.minPrice > 0) params.append("minPrice", filters.minPrice.toString());
       if (filters.maxPrice < 500000) params.append("maxPrice", filters.maxPrice.toString());
       if (sort) params.append("sort", sort);
@@ -127,6 +148,17 @@ export default function Home() {
     setSelectedCategory(undefined);
     setSelectedSupplier(null);
     setPage(1);
+    // Clear search query from URL
+    setLocation("/");
+  };
+
+  const handleSearchChange = (query: string) => {
+    if (query) {
+      setLocation(`/?query=${encodeURIComponent(query)}`);
+    } else {
+      setLocation("/");
+    }
+    setPage(1);
   };
 
   const products = productsData?.products || [];
@@ -150,7 +182,7 @@ export default function Home() {
         onCategorySelect={handleCategorySelect}
       />
 
-      {/* Quick Filters */}
+      {/* Quick Filters + Search */}
       <QuickFilters
         supplier={selectedSupplier}
         onSupplierChange={handleSupplierChange}
@@ -158,6 +190,8 @@ export default function Home() {
         onSortChange={handleSortChange}
         onOpenFilters={() => setMobileFiltersOpen(true)}
         totalProducts={totalProducts}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
       />
 
       {/* Main Content */}

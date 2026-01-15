@@ -29,7 +29,7 @@ import PasswordResetPage from "@/pages/password-reset-page";
 import PublicationsPage from "@/pages/publications";
 import AboutPage from "@/pages/about";
 import ContactsPage from "@/pages/contacts";
-import Products from "@/pages/products";
+// Products page removed - all products shown on Home page
 
 // Admin Pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -70,7 +70,6 @@ function Router() {
           <Route path="/publications" component={PublicationsPage} />
           <Route path="/about" component={AboutPage} />
           <Route path="/contacts" component={ContactsPage} />
-          <Route path="/products" component={Products} />
 
           {/* Protected Routes (требуют авторизации) */}
           <ProtectedRoute path="/checkout" component={Checkout} />

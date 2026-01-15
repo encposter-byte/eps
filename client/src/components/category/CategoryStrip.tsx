@@ -74,7 +74,7 @@ export default function CategoryStrip({
   }
 
   return (
-    <div className="border-b bg-white sticky top-[64px] z-40">
+    <div className="border-b bg-white sticky top-0 z-40">
       <div className="container mx-auto px-4">
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex gap-2 py-3">
