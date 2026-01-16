@@ -31,8 +31,6 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<any> {
-  console.log(`API Request: ${method} ${url}`, data);
-  
   try {
     const fetchOptions: RequestInit = {
       method: method,
@@ -52,8 +50,6 @@ export async function apiRequest(
         'Content-Type': 'application/json'
       };
     }
-
-    console.log('Fetch options:', fetchOptions);
 
     const res = await fetch(url, fetchOptions);
 
@@ -85,7 +81,6 @@ export async function apiRequest(
     // Для всех остальных случаев возвращаем текст ответа
     return res.text();
   } catch (error) {
-    console.error(`API Request Error: ${method} ${url}`, error);
     throw error;
   }
 }

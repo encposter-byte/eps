@@ -65,7 +65,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 1500);
     } catch (error) {
-      console.error('Failed to add to cart:', error);
+      // Ошибка добавления в корзину
     } finally {
       setIsAdding(false);
     }

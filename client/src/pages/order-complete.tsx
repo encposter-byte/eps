@@ -21,7 +21,6 @@ export default function OrderComplete() {
         const data = await apiRequest("GET", `/api/orders/${id}`);
         setOrder(data);
       } catch (error: any) {
-        console.error("Ошибка при загрузке заказа:", error);
         setError(error.message || "Не удалось загрузить информацию о заказе");
         toast({
           title: "Ошибка",

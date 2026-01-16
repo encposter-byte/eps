@@ -54,18 +54,11 @@ function RequestResetForm() {
           title: "Тестовый режим",
           description: result.message || "Инструкции отправлены на тестовый email разработчика.",
         });
-        console.log(result.note);
       } else {
         toast({
           title: "Запрос отправлен",
           description: "Инструкции по восстановлению пароля отправлены на ваш email.",
         });
-      }
-      
-      // Для тестовых целей: отображаем токен в консоли, если он возвращается с сервера
-      if (result && result.token) {
-        console.log("Reset token for testing:", result.token);
-        console.log(`Reset URL: ${window.location.origin}/password-reset?token=${result.token}`);
       }
     } catch (error) {
       toast({

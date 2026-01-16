@@ -127,9 +127,8 @@ export default function ProductForm({ productId }: ProductFormProps) {
 
   // Обработка формы
   const onSubmit = async (data: ProductFormValues) => {
-    console.log("Отправка формы:", data);
     setIsSubmitting(true);
-    
+
     try {
       // Преобразуем числовые поля
       const formattedData = {
@@ -141,29 +140,22 @@ export default function ProductForm({ productId }: ProductFormProps) {
         isActive: Boolean(data.isActive),
         isFeatured: Boolean(data.isFeatured)
       };
-      
-      console.log("Форматированные данные:", formattedData);
-      
+
       // Выполняем запрос напрямую вместо использования mutation
       if (isEditing && productId) {
-        console.log(`Отправка PATCH запроса на /api/products/${productId}`);
-        const result = await apiRequest("PATCH", `/api/products/${productId}`, formattedData);
-        console.log("Результат обновления товара:", result);
-        
+        await apiRequest("PATCH", `/api/products/${productId}`, formattedData);
+
         setSuccessMessage("Товар успешно обновлен");
         queryClient.invalidateQueries({ queryKey: ["/api/products"] });
         setSuccess(true);
       } else {
-        console.log("Отправка POST запроса на /api/products");
-        const result = await apiRequest("POST", "/api/products", formattedData);
-        console.log("Результат создания товара:", result);
-        
+        await apiRequest("POST", "/api/products", formattedData);
+
         setSuccessMessage("Товар успешно создан");
         queryClient.invalidateQueries({ queryKey: ["/api/products"] });
         setSuccess(true);
       }
     } catch (error) {
-      console.error("Ошибка при сохранении товара:", error);
       toast({
         title: "Ошибка",
         description: `Не удалось ${isEditing ? "обновить" : "создать"} товар: ${error}`,

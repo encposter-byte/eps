@@ -80,7 +80,6 @@ export default function ProductTable() {
     setIsDeleting(true);
     
     try {
-      console.log(`Удаление товара ID: ${id} через SQL маршрут...`);
       
       // Визуально удаляем элемент немедленно
       if (data && data.products) {
@@ -109,8 +108,6 @@ export default function ProductTable() {
       const result = await response.json();
       
       if (result.success) {
-        console.log(`Товар ID: ${id} успешно удален через SQL`);
-        // Показываем уведомление об успехе
         toast({
           title: "Успешно удалено",
           description: "Товар был успешно удален из базы данных."
@@ -129,9 +126,6 @@ export default function ProductTable() {
       }, 500);
       
     } catch (error) {
-      console.error("Ошибка при удалении товара:", error);
-      
-      // Обрабатываем ошибку и все равно обновляем интерфейс
       toast({
         title: "Ошибка при удалении",
         description: error instanceof Error ? error.message : "Ошибка при удалении товара из базы данных",

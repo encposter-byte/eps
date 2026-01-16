@@ -39,8 +39,6 @@ export default function ProductManagement() {
       const noCacheToken = `nocache=${new Date().getTime()}-${Math.random().toString(36).substring(2, 15)}`;
       const deleteUrl = `/api/admin/products/delete-all?${noCacheToken}`;
       
-      console.log(`Отправка запроса на удаление всех товаров: ${deleteUrl}`);
-      
       const response = await fetch(deleteUrl, {
         method: 'DELETE',
         credentials: 'include',
@@ -60,9 +58,7 @@ export default function ProductManagement() {
         let data;
         try {
           data = await response.json();
-          console.log('Результат удаления товаров:', data);
         } catch (parseError) {
-          console.error('Ошибка при разборе JSON ответа:', parseError);
           data = { message: "Товары удалены, но сервер вернул некорректный ответ" };
         }
         
@@ -83,16 +79,14 @@ export default function ProductManagement() {
             }
           });
         } catch (storageError) {
-          console.error('Ошибка при очистке localStorage:', storageError);
+          // Игнорируем ошибки очистки localStorage
         }
-        
+
         // Принудительная перезагрузка всей страницы, чтобы гарантировать обновление данных
         setTimeout(() => {
-          console.log('Перенаправление на страницу админ-панели...');
           window.location.href = `/admin?t=${Date.now()}`;
         }, 1000);
       } else {
-        console.error('Ошибка при удалении товаров. Код ответа:', response.status);
         
         // Пытаемся получить сообщение об ошибке из ответа
         let errorMessage;
@@ -106,8 +100,6 @@ export default function ProductManagement() {
         throw new Error(errorMessage);
       }
     } catch (error) {
-      console.error('Критическая ошибка при удалении товаров:', error);
-      
       toast({
         title: "Ошибка при удалении",
         description: error instanceof Error ? error.message : "Не удалось удалить все товары. Попробуйте позже.",

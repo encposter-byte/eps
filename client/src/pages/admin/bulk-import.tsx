@@ -48,7 +48,7 @@ export default function BulkImport() {
             successCount++;
           }
         } catch (error) {
-          console.error('Failed to create product:', error);
+          // Ошибка создания товара
         }
       }
 

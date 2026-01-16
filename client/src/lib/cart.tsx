@@ -90,7 +90,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setSubtotal(0);
       }
     } catch (error) {
-      console.error("Failed to fetch cart", error);
       // Reset to empty state on error
       setItems([]);
       setItemCount(0);

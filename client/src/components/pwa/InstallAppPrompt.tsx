@@ -82,11 +82,7 @@ export default function InstallAppPrompt() {
     
     // Ожидаем ответа пользователя
     const choiceResult = await deferredPrompt.userChoice;
-    if (choiceResult.outcome === 'accepted') {
-      console.log('Пользователь установил приложение');
-    } else {
-      console.log('Пользователь отклонил установку');
-    }
+    // Результат выбора пользователя: choiceResult.outcome
     
     // Сбрасываем сохраненное событие
     setDeferredPrompt(null);

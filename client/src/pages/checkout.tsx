@@ -184,7 +184,6 @@ export default function Checkout() {
       // Перенаправляем пользователя на страницу успешного оформления заказа
       setLocation(`/order-complete/${order.id}`);
     } catch (error: any) {
-      console.error("Ошибка при оформлении заказа:", error);
       toast({
         title: "Ошибка при оформлении заказа",
         description: error.message || "Пожалуйста, попробуйте еще раз",

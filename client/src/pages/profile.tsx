@@ -41,7 +41,6 @@ export default function Profile() {
         const data = await apiRequest("GET", "/api/orders/my-orders");
         setOrders(data.orders || []);
       } catch (error) {
-        console.error("Ошибка при загрузке заказов:", error);
         toast({
           title: "Ошибка",
           description: "Не удалось загрузить историю заказов",

@@ -173,7 +173,6 @@ export default function OrderManagement() {
         limit: searchParams.limit.toString(),
       }).toString();
 
-      console.log("Orders search params:", Object.fromEntries(new URLSearchParams(queryString).entries()));
       const response = await apiRequest("GET", `/api/orders?${queryString}`);
       return response;
     },
@@ -229,7 +228,6 @@ export default function OrderManagement() {
       setSelectedOrder(response);
       setIsDetailsOpen(true);
     } catch (error) {
-      console.error("Ошибка при загрузке деталей заказа:", error);
       toast({
         title: "Ошибка",
         description: "Не удалось загрузить детали заказа",
@@ -264,7 +262,6 @@ export default function OrderManagement() {
       setIsUpdateStatusOpen(false);
       refetch(); // Обновляем список заказов
     } catch (error) {
-      console.error("Ошибка при обновлении статуса:", error);
       toast({
         title: "Ошибка",
         description: "Не удалось обновить статус заказа",

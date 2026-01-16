@@ -110,9 +110,8 @@ function Router() {
 }
 
 function App() {
-  // Добавляем дату обновления для сброса кеша
-  const updateVersion = "15.05.2025.13:16"; // обновленная дата и время
-  console.log("ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ", updateVersion);
+  // Дата обновления для сброса кеша
+  const updateVersion = "15.05.2025.13:30";
 
   return (
     <QueryClientProvider client={queryClient}>

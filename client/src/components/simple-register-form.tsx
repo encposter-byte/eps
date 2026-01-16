@@ -29,8 +29,6 @@ export function SimpleRegisterForm() {
     setIsLoading(true);
     
     try {
-      console.log('Отправка данных регистрации:', formData);
-      
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
@@ -39,8 +37,6 @@ export function SimpleRegisterForm() {
         body: JSON.stringify(formData),
         credentials: 'include'
       });
-
-      console.log('Ответ регистрации:', response);
 
       if (response.ok) {
         const user = await response.json();
@@ -59,7 +55,6 @@ export function SimpleRegisterForm() {
         });
       }
     } catch (error) {
-      console.error('Ошибка регистрации:', error);
       toast({
         title: "Ошибка регистрации",
         description: "Произошла ошибка при регистрации",
