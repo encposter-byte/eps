@@ -1,6 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Helmet } from "react-helmet";
 import { MapPin, Phone, Clock } from "lucide-react";
+
+// Lazy load map component to avoid SSR issues
+const LocationsMap = lazy(() => import("@/components/map/LocationsMap"));
 
 export default function AboutPage() {
   // Скролл к карте если в URL есть #map
@@ -15,7 +18,13 @@ export default function AboutPage() {
     }
   }, []);
 
-  const locations = [
+  const locations: Array<{
+    city: string;
+    address: string;
+    phone: string;
+    tollFree: string;
+    coords: [number, number];
+  }> = [
     {
       city: "Волгоград",
       address: "ул. им. Маршала Еременко, д. 44",
@@ -118,20 +127,17 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Яндекс Карта с филиалами */}
+      {/* Карта с филиалами (OpenStreetMap) */}
       <div id="map" className="mb-10 scroll-mt-20">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Наши филиалы на карте</h2>
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <iframe
-            src="https://yandex.ru/map-widget/v1/?ll=40.000000%2C52.000000&pt=44.536100%2C48.762240%2Cpm2rdm~39.692797%2C47.290277%2Cpm2rdm~30.428867%2C59.883060%2Cpm2rdm~37.698609%2C44.783390%2Cpm2rdm~37.541575%2C47.098635%2Cpm2rdm&z=4"
-            width="100%"
-            height="450"
-            frameBorder="0"
-            title="Филиалы ЭПС на карте"
-            className="w-full"
-            style={{ display: 'block' }}
-            allowFullScreen
-          />
+          <Suspense fallback={
+            <div className="h-[450px] flex items-center justify-center bg-gray-100">
+              <div className="text-gray-500">Загрузка карты...</div>
+            </div>
+          }>
+            <LocationsMap locations={locations} />
+          </Suspense>
         </div>
         <p className="text-sm text-gray-500 mt-3 text-center">
           Метки показывают расположение наших филиалов
