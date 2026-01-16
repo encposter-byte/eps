@@ -1,9 +1,6 @@
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { MapPin, Phone, Clock } from "lucide-react";
-
-// Lazy load map component to avoid SSR issues
-const LocationsMap = lazy(() => import("@/components/map/LocationsMap"));
 
 export default function AboutPage() {
   // Скролл к карте если в URL есть #map
@@ -18,47 +15,36 @@ export default function AboutPage() {
     }
   }, []);
 
-  const locations: Array<{
-    city: string;
-    address: string;
-    phone: string;
-    tollFree: string;
-    coords: [number, number];
-  }> = [
+  const locations = [
     {
       city: "Волгоград",
       address: "ул. им. Маршала Еременко, д. 44",
       phone: "+7 929 780-48-46",
       tollFree: "8 800 101 38 35",
-      coords: [48.762240, 44.536100]
     },
     {
       city: "Ростов-на-Дону",
       address: "проспект Королёва, д. 1Э",
       phone: "+7 960 444-75-95",
       tollFree: "8 800 101 38 35",
-      coords: [47.290277, 39.692797]
     },
     {
       city: "Санкт-Петербург",
       address: "проспект Железнодорожный, д. 14 к7",
       phone: "+7 981 858-21-43",
       tollFree: "8 800 101 38 35",
-      coords: [59.883060, 30.428867]
     },
     {
       city: "Новороссийск",
       address: "с. Гайдук, ул. Строительная д. 14",
       phone: "+7 918 120-85-55",
       tollFree: "8 800 101 38 35",
-      coords: [44.783390, 37.698609]
     },
     {
       city: "Мариуполь",
       address: "ул. Соборная, д. 10",
       phone: "+7 949 023-20-77",
       tollFree: "8 800 101 38 35",
-      coords: [47.098635, 37.541575]
     }
   ];
 
@@ -127,17 +113,20 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* Карта с филиалами (OpenStreetMap) */}
+      {/* Яндекс Карта с филиалами */}
       <div id="map" className="mb-10 scroll-mt-20">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Наши филиалы на карте</h2>
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <Suspense fallback={
-            <div className="h-[450px] flex items-center justify-center bg-gray-100">
-              <div className="text-gray-500">Загрузка карты...</div>
-            </div>
-          }>
-            <LocationsMap locations={locations} />
-          </Suspense>
+          <iframe
+            src="https://yandex.ru/map-widget/v1/?ll=40.000000%2C52.000000&pt=44.536100%2C48.762240%2Cpm2rdm~39.692797%2C47.290277%2Cpm2rdm~30.428867%2C59.883060%2Cpm2rdm~37.698609%2C44.783390%2Cpm2rdm~37.541575%2C47.098635%2Cpm2rdm&z=4"
+            width="100%"
+            height="450"
+            frameBorder="0"
+            title="Филиалы ЭПС на карте"
+            className="w-full"
+            style={{ display: 'block' }}
+            allowFullScreen
+          />
         </div>
         <p className="text-sm text-gray-500 mt-3 text-center">
           Метки показывают расположение наших филиалов
