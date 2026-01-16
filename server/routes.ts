@@ -792,7 +792,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Получаем userId из сессии если пользователь авторизован
-      const userId = req.user?.id;
+      const sessionUser = (req.session as any)?.user;
+      const userId = sessionUser?.id;
 
       const order = await storage.createOrder(orderData, cartItems, userId);
 
@@ -806,13 +807,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Получение заказов текущего пользователя
-  router.get("/orders/my-orders", async (req, res) => {
+  router.get("/orders/my-orders", requireAuth, async (req, res) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Необходима авторизация" });
-      }
-
-      const userOrders = await storage.getOrdersByUserId(req.user.id);
+      const userOrders = await storage.getOrdersByUserId(req.user!.id);
       res.json({ orders: userOrders });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
