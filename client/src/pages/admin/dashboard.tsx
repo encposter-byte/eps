@@ -1,77 +1,69 @@
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
 import {
   ShoppingBag,
   Package2,
   Users,
-  DollarSign,
-  ArrowUpRight,
-  ArrowDownRight,
   BarChart3,
-  TrendingUp,
+  ShoppingCart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminSidebar from "@/components/admin/sidebar";
 import { Category, Product } from "@shared/schema";
 
-// Данные для карточек обзора
-const overviewCards = [
-  {
-    title: "Общая выручка",
-    value: "15 231,89 ₽",
-    change: "+12.5%",
-    trend: "up",
-    icon: DollarSign,
-  },
-  {
-    title: "Активные товары",
-    value: "0", // Будет обновлено из API
-    change: "+4.3%",
-    trend: "up",
-    icon: Package2,
-  },
-  {
-    title: "Категории",
-    value: "0", // Будет обновлено из API
-    change: "0%",
-    trend: "neutral",
-    icon: ShoppingBag,
-  },
-  {
-    title: "Клиенты",
-    value: "573",
-    change: "+9.1%",
-    trend: "up",
-    icon: Users,
-  },
-];
+interface Order {
+  id: number;
+  status: string;
+  totalAmount: string | number;
+  createdAt: string;
+  customerName: string;
+}
+
+interface UsersResponse {
+  users: any[];
+  total: number;
+}
+
+interface OrdersResponse {
+  orders: Order[];
+  total: number;
+}
 
 export default function AdminDashboard() {
   // Fetch all products
-  const { data: products = [] } = useQuery<Product[]>({
+  const { data: productsData } = useQuery<{ products: Product[], total: number }>({
     queryKey: ["/api/products"],
   });
-  
+  const products = productsData?.products || [];
+
   // Fetch all categories
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
-  
-  // Update overview cards with real data
+
+  // Fetch users count
+  const { data: usersData } = useQuery<UsersResponse>({
+    queryKey: ["/api/admin/users"],
+  });
+
+  // Fetch orders
+  const { data: ordersData } = useQuery<OrdersResponse>({
+    queryKey: ["/api/admin/orders"],
+  });
+
+  // Calculate real stats
   const activeProducts = Array.isArray(products) ? products.filter(p => p.isActive === true).length : 0;
   const categoryCount = categories.length;
-  
-  // Updated cards
-  const updatedCards = [...overviewCards];
-  updatedCards[1].value = activeProducts.toString();
-  updatedCards[2].value = categoryCount.toString();
+  const usersCount = usersData?.total || 0;
+  const ordersCount = ordersData?.total || 0;
+  const recentOrders = ordersData?.orders?.slice(0, 5) || [];
   
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -91,37 +83,49 @@ export default function AdminDashboard() {
         
         {/* Обзорные карточки */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          {updatedCards.map((card, i) => (
-            <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {card.title}
-                </CardTitle>
-                <card.icon className="h-4 w-4 text-gray-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{card.value}</div>
-                <p className="text-xs text-gray-500 flex items-center mt-1">
-                  {card.trend === 'up' ? (
-                    <ArrowUpRight className="h-3 w-3 mr-1 text-emerald-500" />
-                  ) : card.trend === 'down' ? (
-                    <ArrowDownRight className="h-3 w-3 mr-1 text-rose-500" />
-                  ) : (
-                    <span className="h-3 w-3 mr-1" />
-                  )}
-                  <span className={
-                    card.trend === 'up' 
-                      ? 'text-emerald-500' 
-                      : card.trend === 'down' 
-                        ? 'text-rose-500' 
-                        : ''
-                  }>
-                    {card.change} по сравнению с прошлым месяцем
-                  </span>
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Товары</CardTitle>
+              <Package2 className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{activeProducts}</div>
+              <p className="text-xs text-gray-500 mt-1">активных товаров</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Категории</CardTitle>
+              <ShoppingBag className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{categoryCount}</div>
+              <p className="text-xs text-gray-500 mt-1">категорий товаров</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Заказы</CardTitle>
+              <ShoppingCart className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{ordersCount}</div>
+              <p className="text-xs text-gray-500 mt-1">всего заказов</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Клиенты</CardTitle>
+              <Users className="h-4 w-4 text-gray-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{usersCount}</div>
+              <p className="text-xs text-gray-500 mt-1">зарегистрированных</p>
+            </CardContent>
+          </Card>
         </div>
         
         {/* Быстрые действия */}
@@ -164,29 +168,42 @@ export default function AdminDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4">
-                {[1, 2, 3].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-gray-100 p-2 rounded">
-                        <ShoppingBag className="h-4 w-4 text-gray-500" />
+              {recentOrders.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <ShoppingCart className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                  <p>Заказов пока нет</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {recentOrders.map((order) => (
+                    <div key={order.id} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-gray-100 p-2 rounded">
+                          <ShoppingBag className="h-4 w-4 text-gray-500" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Заказ #{order.id}</p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(order.createdAt).toLocaleDateString('ru-RU')}
+                          </p>
+                        </div>
                       </div>
                       <div>
-                        <p className="font-medium">Заказ #{1000 + i}</p>
+                        <p className="font-medium text-right">
+                          {new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0 }).format(Number(order.totalAmount))}
+                        </p>
                         <p className="text-sm text-gray-500">
-                          {new Date(Date.now() - i * 86400000).toLocaleDateString()}
+                          {order.status === 'pending' ? 'Ожидает' :
+                           order.status === 'processing' ? 'Обработка' :
+                           order.status === 'shipped' ? 'Отправлен' :
+                           order.status === 'delivered' ? 'Доставлен' :
+                           order.status === 'cancelled' ? 'Отменён' : order.status}
                         </p>
                       </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-right">{(Math.random() * 300 + 50).toFixed(2)} ₽</p>
-                      <p className="text-sm text-gray-500">
-                        {i === 0 ? "Обработка" : i === 1 ? "Отправлен" : "Доставлен"}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

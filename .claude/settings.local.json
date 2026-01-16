@@ -36,7 +36,8 @@
       "Bash(powershell -Command \"Stop-Process -Id 3894248 -Force\")",
       "Bash(powershell -Command \"Stop-Process -Id 3898236 -Force\")",
       "Bash(powershell -Command \"Stop-Process -Id 3902716 -Force\")",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(cd:*)"
     ]
   }
 }
