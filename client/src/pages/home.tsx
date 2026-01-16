@@ -99,6 +99,8 @@ export default function Home() {
       searchQuery,
       selectedSupplier,
       selectedCategory,
+      filters.categories,
+      filters.suppliers,
       filters.minPrice,
       filters.maxPrice,
       sort,
@@ -108,8 +110,23 @@ export default function Home() {
       const params = new URLSearchParams();
 
       if (searchQuery) params.append("query", searchQuery);
-      if (selectedSupplier) params.append("supplier", selectedSupplier);
-      if (selectedCategory) params.append("categorySlug", selectedCategory);
+
+      // Бренд/supplier из QuickFilters или из FilterSidebar
+      if (selectedSupplier) {
+        params.append("supplier", selectedSupplier);
+      } else if (filters.suppliers.length > 0) {
+        // Если выбраны бренды в сайдбаре, передаём первый (или можно передать все через запятую)
+        params.append("supplier", filters.suppliers.join(","));
+      }
+
+      // Категория из CategoryStrip или из FilterSidebar
+      if (selectedCategory) {
+        params.append("categorySlug", selectedCategory);
+      } else if (filters.categories.length > 0) {
+        // Передаём выбранные категории
+        params.append("categorySlug", filters.categories.join(","));
+      }
+
       if (filters.minPrice > 0) params.append("minPrice", filters.minPrice.toString());
       if (filters.maxPrice < 500000) params.append("maxPrice", filters.maxPrice.toString());
       if (sort) params.append("sort", sort);

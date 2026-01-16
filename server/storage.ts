@@ -11,7 +11,7 @@ import {
   verificationCodes, InsertVerificationCode, VerificationCode
 } from "@shared/schema";
 import { z } from "zod";
-import { and, eq, like, between, desc, asc, sql, isNull, isNotNull, gte, lte, or, not, ilike } from "drizzle-orm";
+import { and, eq, like, between, desc, asc, sql, isNull, isNotNull, gte, lte, or, not, ilike, inArray } from "drizzle-orm";
 import * as crypto from "crypto";
 
 const PostgresSessionStore = connectPg(session);
@@ -428,6 +428,7 @@ export class DatabaseStorage implements IStorage {
   async searchProducts(params: {
     query?: string;
     categoryId?: number;
+    categoryIds?: number[];
     supplier?: string;
     minPrice?: number;
     maxPrice?: number;
@@ -452,14 +453,24 @@ export class DatabaseStorage implements IStorage {
       );
     }
 
-    // Фильтр по категории
-    if (params.categoryId) {
+    // Фильтр по категориям (множественный выбор)
+    if (params.categoryIds && params.categoryIds.length > 0) {
+      conditions.push(inArray(products.categoryId, params.categoryIds));
+    } else if (params.categoryId) {
+      // Обратная совместимость с одиночным categoryId
       conditions.push(eq(products.categoryId, params.categoryId));
     }
 
-    // Supplier filter
+    // Supplier/Brand filter (поддержка множественного выбора через запятую)
     if (params.supplier) {
-       conditions.push(ilike(products.tag, `%${params.supplier}%`));
+      const suppliers = params.supplier.split(',').map(s => s.trim());
+      if (suppliers.length === 1) {
+        conditions.push(ilike(products.tag, `%${suppliers[0]}%`));
+      } else {
+        // Множественный выбор брендов через OR
+        const supplierConditions = suppliers.map(s => ilike(products.tag, `%${s}%`));
+        conditions.push(or(...supplierConditions));
+      }
     }
 
     // Фильтр по цене

@@ -30,11 +30,11 @@ interface FilterSidebarProps {
   className?: string;
 }
 
-const SUPPLIERS = [
+const BRANDS = [
   { id: "DCK", name: "DCK" },
   { id: "TSS", name: "TSS" },
   { id: "HUGONGWELD", name: "HUGONG WELD" },
-  { id: "MITSUDIESEL", name: "Mitsudiesel" },
+  { id: "Mitsudiesel", name: "Mitsudiesel" },
 ];
 
 const DEFAULT_MAX_PRICE = 500000;
@@ -158,25 +158,25 @@ export default function FilterSidebar({
 
           <Separator />
 
-          {/* Поставщики */}
+          {/* Бренды */}
           <AccordionItem value="suppliers" className="border-none">
             <AccordionTrigger className="py-2 hover:no-underline">
-              <span className="font-medium text-sm">Поставщик</span>
+              <span className="font-medium text-sm">Бренд</span>
             </AccordionTrigger>
             <AccordionContent className="pb-4">
               <div className="space-y-2">
-                {SUPPLIERS.map((supplier) => (
-                  <div key={supplier.id} className="flex items-center space-x-2">
+                {BRANDS.map((brand) => (
+                  <div key={brand.id} className="flex items-center space-x-2">
                     <Checkbox
-                      id={`supplier-${supplier.id}`}
-                      checked={filters.suppliers.includes(supplier.id)}
-                      onCheckedChange={() => handleSupplierToggle(supplier.id)}
+                      id={`brand-${brand.id}`}
+                      checked={filters.suppliers.includes(brand.id)}
+                      onCheckedChange={() => handleSupplierToggle(brand.id)}
                     />
                     <Label
-                      htmlFor={`supplier-${supplier.id}`}
+                      htmlFor={`brand-${brand.id}`}
                       className="text-sm font-normal cursor-pointer"
                     >
-                      {supplier.name}
+                      {brand.name}
                     </Label>
                   </div>
                 ))}

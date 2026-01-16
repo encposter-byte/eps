@@ -227,22 +227,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Product Routes
   router.get("/products", async (req, res) => {
     try {
-      // Если передан categorySlug, получаем categoryId
-      let categoryId = req.query.categoryId ? parseInt(req.query.categoryId as string) : undefined;
+      // Если передан categorySlug (может быть несколько через запятую), получаем categoryIds
+      let categoryIds: number[] = [];
 
-      if (!categoryId && req.query.categorySlug) {
-        console.log(`[products] categorySlug: "${req.query.categorySlug}"`);
-        const category = await storage.getCategoryBySlug(req.query.categorySlug as string);
-        console.log(`[products] found category:`, category?.id || 'null');
-        if (category) {
-          categoryId = category.id;
+      if (req.query.categoryId) {
+        categoryIds = [parseInt(req.query.categoryId as string)];
+      } else if (req.query.categorySlug) {
+        const slugs = (req.query.categorySlug as string).split(',');
+        for (const slug of slugs) {
+          const category = await storage.getCategoryBySlug(slug.trim());
+          if (category) {
+            categoryIds.push(category.id);
+          }
         }
       }
 
       // Прямая обработка параметров без Zod
       const params: any = {
         query: req.query.query as string | undefined,
-        categoryId,
+        categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
         supplier: req.query.supplier as string | undefined,
         minPrice: req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined,
         maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined,
