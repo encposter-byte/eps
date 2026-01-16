@@ -120,7 +120,8 @@ export interface IStorage {
   clearCart(cartId: string): Promise<boolean>;
 
   // Order operations
-  createOrder(orderInput: OrderInput, cartItems: (CartItem & { product: Product })[]): Promise<Order>;
+  createOrder(orderInput: OrderInput, cartItems: (CartItem & { product: Product })[], userId?: number): Promise<Order>;
+  getOrdersByUserId(userId: number): Promise<Order[]>;
   getOrderById(id: number): Promise<(Order & { items: (OrderItem & { product?: Product })[] }) | undefined>;
   getAllOrders(): Promise<Order[]>;
   searchOrders(params: OrderSearchParams): Promise<{ orders: Order[], total: number }>;
@@ -750,7 +751,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Order operations
-  async createOrder(orderInput: OrderInput, cartItems: (CartItem & { product: Product })[]): Promise<Order> {
+  async createOrder(orderInput: OrderInput, cartItems: (CartItem & { product: Product })[], userId?: number): Promise<Order> {
     // Рассчитаем общую сумму заказа
     const totalAmount = cartItems.reduce(
       (sum, item) => sum + item.quantity * Number(item.product.price),
@@ -762,7 +763,7 @@ export class DatabaseStorage implements IStorage {
     const orderResult = await db.transaction(async (tx) => {
       // 1. Создаем основную запись заказа
       const orderData = {
-        userId: null, // TODO: Добавить поддержку userId для авторизованных пользователей
+        userId: userId || null,
         customerName: orderInput.customerName,
         customerEmail: orderInput.customerEmail,
         customerPhone: orderInput.customerPhone,
@@ -833,6 +834,12 @@ export class DatabaseStorage implements IStorage {
 
   async getAllOrders(): Promise<Order[]> {
     return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  }
+
+  async getOrdersByUserId(userId: number): Promise<Order[]> {
+    return await db.select().from(orders)
+      .where(eq(orders.userId, userId))
+      .orderBy(desc(orders.createdAt));
   }
 
   async searchOrders(params: OrderSearchParams): Promise<{ orders: Order[], total: number }> {

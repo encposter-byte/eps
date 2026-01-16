@@ -791,7 +791,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Корзина пуста" });
       }
 
-      const order = await storage.createOrder(orderData, cartItems);
+      // Получаем userId из сессии если пользователь авторизован
+      const userId = req.user?.id;
+
+      const order = await storage.createOrder(orderData, cartItems, userId);
 
       // Clear cart after successful order
       await storage.clearCart(orderData.cartId);
@@ -799,6 +802,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(order);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Получение заказов текущего пользователя
+  router.get("/orders/my-orders", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Необходима авторизация" });
+      }
+
+      const userOrders = await storage.getOrdersByUserId(req.user.id);
+      res.json({ orders: userOrders });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
