@@ -266,35 +266,17 @@ export default function Profile() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="rounded-lg border border-gray-200 p-4">
-                        <div className="mb-2 flex items-center justify-between">
-                          <h3 className="font-medium">Основной адрес</h3>
-                          <div className="inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
-                            По умолчанию
-                          </div>
-                        </div>
-                        <div className="space-y-1 text-sm text-gray-500">
-                          <p>Иван Иванов</p>
-                          <p>ул. Примерная, д. 123, кв. 45</p>
-                          <p>Москва, 123456</p>
-                          <p>+7 900 123-45-67</p>
-                        </div>
-                        <div className="mt-3 flex space-x-2">
-                          <Button variant="outline" size="sm">
-                            Редактировать
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            Удалить
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-center">
-                        <Button variant="outline">
-                          Добавить новый адрес
-                        </Button>
-                      </div>
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <Truck className="mb-4 h-12 w-12 text-gray-300" />
+                      <p className="text-lg font-medium text-gray-900">
+                        У вас нет сохранённых адресов
+                      </p>
+                      <p className="mb-4 text-gray-500">
+                        Добавьте адрес для быстрого оформления заказов
+                      </p>
+                      <Button variant="outline">
+                        Добавить адрес
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>

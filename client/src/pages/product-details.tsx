@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'wouter';
-import { Heart, ShoppingCart, Star, Truck, Shield, RotateCcw } from 'lucide-react';
+import { Heart, ShoppingCart, Truck, Shield, RotateCcw } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
@@ -208,25 +208,7 @@ export default function ProductDetails() {
                   </Button>
                 </div>
 
-                {product.sku && (
-                  <p className="text-sm text-gray-500">SKU: {product.sku}</p>
-                )}
-
-                {/* Rating */}
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-4 w-4 ${i < 4 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-600">(4.0) 128 reviews</span>
-                </div>
               </div>
-
-              <Separator />
 
               {/* Price */}
               <div className="space-y-2">
@@ -245,14 +227,6 @@ export default function ProductDetails() {
                     Save {formatPrice(product.originalPrice - product.price)}
                   </Badge>
                 )}
-              </div>
-
-              {/* Stock Status */}
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`} />
-                <span className={`text-sm font-medium ${product.stock > 0 ? 'text-green-700' : 'text-red-700'}`}>
-                  {product.stock > 0 ? `В наличии (${product.stock} шт.)` : 'Нет в наличии'}
-                </span>
               </div>
 
               <Separator />

@@ -129,6 +129,18 @@ export default function Checkout() {
     },
   });
 
+  // Автозаполнение формы данными пользователя
+  useEffect(() => {
+    if (user) {
+      if (user.email) {
+        form.setValue('customerEmail', user.email);
+      }
+      if (user.username) {
+        form.setValue('customerName', user.username);
+      }
+    }
+  }, [user, form]);
+
   // Обработка отправки формы
   const onSubmit = async (data: CheckoutFormValues) => {
     if (items.length === 0) {
@@ -495,15 +507,27 @@ export default function Checkout() {
                         <Separator />
 
                         <div className="flex items-center justify-between">
-                          <p className="font-medium">Подытог</p>
+                          <p className="font-medium">Сумма товаров</p>
                           <p className="font-medium">{formatPrice(subtotal)}</p>
                         </div>
 
-                        {/* Можно добавить расчет доставки и скидок */}
-                        
+                        <div className="flex items-center justify-between">
+                          <p className="text-gray-600">НДС (20%)</p>
+                          <p className="font-medium">{formatPrice(subtotal * 0.2)}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <p className="text-gray-600">Доставка</p>
+                          <p className="font-medium">
+                            {subtotal > 7500 ? 'Бесплатно' : formatPrice(500)}
+                          </p>
+                        </div>
+
                         <div className="flex items-center justify-between">
                           <p className="text-lg font-bold">Итого</p>
-                          <p className="text-lg font-bold">{formatPrice(subtotal)}</p>
+                          <p className="text-lg font-bold">
+                            {formatPrice(subtotal + subtotal * 0.2 + (subtotal > 7500 ? 0 : 500))}
+                          </p>
                         </div>
                       </>
                     )}

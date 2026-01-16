@@ -2,8 +2,10 @@ import {
   Phone,
   MapPin,
   Clock,
-  Mail
+  Mail,
+  Map
 } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Footer() {
   return (
@@ -107,6 +109,17 @@ export default function Footer() {
                 </a>
               </div>
             ))}
+          </div>
+
+          {/* Кнопка "Посмотреть на карте" */}
+          <div className="flex justify-center mt-6">
+            <Link
+              to="/about#map"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-eps-orange/20 hover:bg-eps-orange/30 text-eps-orange font-medium rounded-lg transition-all"
+            >
+              <Map className="w-5 h-5" />
+              Посмотреть на карте
+            </Link>
           </div>
         </div>
 
