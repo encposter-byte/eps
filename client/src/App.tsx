@@ -35,12 +35,10 @@ import ContactsPage from "@/pages/contacts";
 // Admin Pages
 import AdminDashboard from "@/pages/admin/dashboard";
 import ProductManagement from "@/pages/admin/product-management";
-import BulkImport from "@/pages/admin/bulk-import";
 import ProductFormPage from "@/pages/admin/product-form-page";
 import CategoryManagement from "@/pages/admin/category-management";
 import OrderManagement from "@/pages/admin/order-management";
 import UserManagement from "@/pages/admin/user-management";
-import SettingsManagement from "@/pages/admin/settings-management";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -83,11 +81,9 @@ function Router() {
           <ProtectedRoute path="/admin/products" component={ProductManagement} />
           <ProtectedRoute path="/admin/products/create" component={ProductFormPage} />
           <ProtectedRoute path="/admin/products/edit/:id" component={ProductFormPage} />
-          <ProtectedRoute path="/admin/import" component={BulkImport} />
           <ProtectedRoute path="/admin/categories" component={CategoryManagement} />
           <ProtectedRoute path="/admin/orders" component={OrderManagement} />
           <ProtectedRoute path="/admin/users" component={UserManagement} />
-          <ProtectedRoute path="/admin/settings" component={SettingsManagement} />
 
           {/* Fallback to 404 */}
           <Route component={NotFound} />

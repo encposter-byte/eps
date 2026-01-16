@@ -83,9 +83,6 @@ export default function AdminDashboard() {
             <p className="text-gray-500">Добро пожаловать в панель администратора.</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/admin/import">Импорт товаров</Link>
-            </Button>
             <Button asChild>
               <Link href="/admin/products">Управление товарами</Link>
             </Button>
@@ -144,14 +141,16 @@ export default function AdminDashboard() {
                 </Link>
               </Button>
               <Button variant="outline" className="justify-start" asChild>
-                <Link href="/admin/import">
+                <Link href="/admin/categories">
                   <ShoppingBag className="mr-2 h-4 w-4" />
-                  Массовый импорт
+                  Управление категориями
                 </Link>
               </Button>
-              <Button variant="outline" className="justify-start">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Отчёт по продажам
+              <Button variant="outline" className="justify-start" asChild>
+                <Link href="/admin/orders">
+                  <BarChart3 className="mr-2 h-4 w-4" />
+                  Просмотр заказов
+                </Link>
               </Button>
             </CardContent>
           </Card>

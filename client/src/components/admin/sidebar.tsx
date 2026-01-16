@@ -5,17 +5,11 @@ import {
   LayoutDashboard,
   Package2,
   ShoppingCart,
-  Upload,
   Tag,
   Users,
-  Settings,
   LogOut,
   Menu,
-  X,
-  Trash2,
-  Bot,
-  Globe,
-  Database
+  X
 } from "lucide-react";
 import { useState } from "react";
 
@@ -63,31 +57,6 @@ export default function AdminSidebar() {
       href: "/admin/products",
     },
     {
-      icon: Upload,
-      label: "Импорт товаров",
-      href: "/admin/import",
-    },
-    {
-      icon: Bot,
-      label: "Адаптация каталогов",
-      href: "/admin/catalog-adapter",
-    },
-    {
-      icon: Globe,
-      label: "Парсинг поставщиков",
-      href: "/admin/web-scraper",
-    },
-    {
-      icon: Database,
-      label: "Массовый парсинг",
-      href: "/admin/mass-scraper",
-    },
-    {
-      icon: Globe,
-      label: "Импорт поставщика",
-      href: "/admin/supplier-importer",
-    },
-    {
       icon: Tag,
       label: "Категории",
       href: "/admin/categories",
@@ -101,11 +70,6 @@ export default function AdminSidebar() {
       icon: Users,
       label: "Клиенты",
       href: "/admin/users",
-    },
-    {
-      icon: Settings,
-      label: "Настройки",
-      href: "/admin/settings",
     },
   ];
   
